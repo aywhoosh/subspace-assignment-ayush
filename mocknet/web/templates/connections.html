@@ -1,0 +1,53 @@
+{{define "content"}}
+<section class="card" data-testid="connections-card">
+  <h1 data-testid="connections-title">Connections</h1>
+
+  <h2 data-testid="connections-pending-title">Pending</h2>
+  <div class="list" data-testid="connections-pending">
+    {{range .Pending}}
+      {{$p := index $.Profiles .ProfileID}}
+      <article class="item" data-testid="pending-connection" data-profile-id="{{.ProfileID}}">
+        <div class="row between">
+          <div>
+            <div class="name" data-testid="pending-name">{{$p.First}} {{$p.Last}}</div>
+            <div class="meta" data-testid="pending-meta">{{$p.Title}} • {{$p.Company}}</div>
+            <div class="meta" data-testid="pending-note">Note: {{.Note}}</div>
+          </div>
+          <div class="row">
+            <a class="btn secondary" href="/profile/{{.ProfileID}}" data-testid="pending-view">View</a>
+            <form method="post" action="/admin/accept" data-testid="pending-accept-form">
+              <input type="hidden" name="profile_id" value="{{.ProfileID}}" data-testid="pending-accept-profile" />
+              <input type="hidden" name="back" value="/connections" />
+              <button type="submit" class="btn" data-testid="pending-accept">Simulate Accept</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    {{else}}
+      <div class="empty" data-testid="pending-empty">No pending requests.</div>
+    {{end}}
+  </div>
+
+  <h2 data-testid="connections-accepted-title">Accepted</h2>
+  <div class="list" data-testid="connections-accepted">
+    {{range .Accepted}}
+      {{$p := index $.Profiles .ProfileID}}
+      <article class="item" data-testid="accepted-connection" data-profile-id="{{.ProfileID}}">
+        <div class="row between">
+          <div>
+            <div class="name" data-testid="accepted-name">{{$p.First}} {{$p.Last}}</div>
+            <div class="meta" data-testid="accepted-meta">{{$p.Title}} • {{$p.Company}}</div>
+          </div>
+          <div class="row">
+            <a class="btn secondary" href="/messages?thread=thread-{{.ProfileID}}" data-testid="accepted-message">Message</a>
+            <a class="btn secondary" href="/profile/{{.ProfileID}}" data-testid="accepted-view">View</a>
+          </div>
+        </div>
+      </article>
+    {{else}}
+      <div class="empty" data-testid="accepted-empty">No accepted connections yet.</div>
+    {{end}}
+  </div>
+</section>
+{{end}}
+{{template "layout" .}}

@@ -1,0 +1,19 @@
+{{define "content"}}
+<section class="card" data-testid="checkpoint-card">
+  <h1 data-testid="checkpoint-title">Security Checkpoint (Mock)</h1>
+  <div class="alert warn" data-testid="checkpoint-banner">
+    This is a mock checkpoint page that simulates 2FA/captcha. Automation should detect this and pause for manual intervention.
+  </div>
+
+  <ol data-testid="checkpoint-instructions">
+    <li>Manually confirm the checkpoint.</li>
+    <li>Click Continue.</li>
+  </ol>
+
+  <form method="post" action="/checkpoint" data-testid="checkpoint-form">
+    <input type="hidden" name="next" value="{{.Next}}" data-testid="checkpoint-next" />
+    <button type="submit" class="btn" data-testid="checkpoint-continue">Continue</button>
+  </form>
+</section>
+{{end}}
+{{template "layout" .}}

@@ -1,0 +1,47 @@
+{{define "content"}}
+<section class="card" data-testid="profile-card" data-profile-id="{{.Profile.ID}}">
+  <div class="row between">
+    <div>
+      <h1 data-testid="profile-name">{{.Profile.First}} {{.Profile.Last}}</h1>
+      <div class="meta" data-testid="profile-meta">{{.Profile.Title}} • {{.Profile.Company}} • {{.Profile.Location}}</div>
+      <div class="meta" data-testid="profile-keywords">Keywords: {{.Profile.Keywords}}</div>
+    </div>
+    <div>
+      {{if eq .Conn.Status "accepted"}}
+        <span class="badge success" data-testid="profile-connection-status">Accepted</span>
+      {{else if eq .Conn.Status "pending"}}
+        <span class="badge warn" data-testid="profile-connection-status">Pending</span>
+      {{else}}
+        <span class="badge" data-testid="profile-connection-status">Not connected</span>
+      {{end}}
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="row" data-testid="profile-actions">
+    <button class="btn" data-testid="connect-button" data-action="open-connect-modal" {{if ne .Conn.Status "none"}}disabled{{end}}>Connect</button>
+    <a class="btn secondary" href="/search" data-testid="profile-back">Back to search</a>
+  </div>
+
+  <div class="modal" id="connect-modal" data-testid="connect-modal" aria-hidden="true">
+    <div class="modal-inner">
+      <div class="row between">
+        <h2 data-testid="connect-modal-title">Send a note</h2>
+        <button class="btn secondary" type="button" data-testid="connect-modal-close" data-action="close-connect-modal">Close</button>
+      </div>
+
+      <form method="post" action="{{.PostAction}}" data-testid="connect-form">
+        <label class="field">
+          <span>Note (max {{.NoteLimit}} chars)</span>
+          <textarea name="note" maxlength="{{.NoteLimit}}" rows="4" data-testid="connect-note"></textarea>
+        </label>
+        <button type="submit" class="btn" data-testid="connect-send">Send</button>
+      </form>
+
+      <p class="hint" data-testid="connect-hint">This is a mock connect flow. No real network requests are made.</p>
+    </div>
+  </div>
+</section>
+{{end}}
+{{template "layout" .}}

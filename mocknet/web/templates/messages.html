@@ -1,0 +1,48 @@
+{{define "content"}}
+<section class="card" data-testid="messages-card">
+  <h1 data-testid="messages-title">Messages</h1>
+
+  <div class="messages" data-testid="messages-layout">
+    <aside class="threads" data-testid="threads">
+      <h2 data-testid="threads-title">Threads</h2>
+      {{range .Threads}}
+        <a class="thread {{if eq $.SelectedThreadID .ThreadID}}active{{end}}" href="/messages?thread={{.ThreadID}}" data-testid="thread-link" data-thread-id="{{.ThreadID}}" data-profile-id="{{.ProfileID}}">
+          <div class="name">{{.Name}}</div>
+          <div class="meta">{{.Company}}</div>
+        </a>
+      {{else}}
+        <div class="empty" data-testid="threads-empty">No threads yet. Accept a connection first.</div>
+      {{end}}
+    </aside>
+
+    <section class="threadview" data-testid="thread-view">
+      {{if .SelectedThreadID}}
+        {{$p := index .Profiles .SelectedProfileID}}
+        <div class="row between">
+          <h2 data-testid="thread-title">{{$p.First}} {{$p.Last}}</h2>
+          <span class="badge" data-testid="thread-id">{{.SelectedThreadID}}</span>
+        </div>
+
+        <div class="chat" data-testid="message-list">
+          {{range .Messages}}
+            <div class="msg {{if .FromSelf}}me{{else}}them{{end}}" data-testid="message-item">
+              <div class="bubble" data-testid="message-body">{{.Body}}</div>
+            </div>
+          {{else}}
+            <div class="empty" data-testid="message-empty">No messages yet.</div>
+          {{end}}
+        </div>
+
+        <form method="post" action="/messages/send" class="row" data-testid="message-form">
+          <input type="hidden" name="profile_id" value="{{.SelectedProfileID}}" data-testid="message-profile-id" />
+          <input name="body" class="grow" placeholder="Type a message..." data-testid="message-input" />
+          <button type="submit" class="btn" data-testid="message-send">Send</button>
+        </form>
+      {{else}}
+        <div class="empty" data-testid="message-select">Select a thread.</div>
+      {{end}}
+    </section>
+  </div>
+</section>
+{{end}}
+{{template "layout" .}}

@@ -1,0 +1,67 @@
+{{define "content"}}
+<section class="card" data-testid="search-card">
+  <h1 data-testid="search-title">Search People</h1>
+
+  <form method="get" action="/search" class="grid" data-testid="search-form">
+    <label class="field">
+      <span>Title</span>
+      <input name="title" value="{{.Query.Title}}" data-testid="search-title-input" />
+    </label>
+    <label class="field">
+      <span>Company</span>
+      <input name="company" value="{{.Query.Company}}" data-testid="search-company-input" />
+    </label>
+    <label class="field">
+      <span>Location</span>
+      <input name="location" value="{{.Query.Location}}" data-testid="search-location-input" />
+    </label>
+    <label class="field">
+      <span>Keywords</span>
+      <input name="keywords" value="{{.Query.Keywords}}" data-testid="search-keywords-input" />
+    </label>
+    <input type="hidden" name="per" value="{{.Per}}" data-testid="search-per" />
+
+    <div class="row">
+      <button type="submit" class="btn" data-testid="search-submit">Search</button>
+      <a class="btn secondary" href="/search" data-testid="search-reset">Reset</a>
+    </div>
+  </form>
+
+  <div class="row between" data-testid="search-summary">
+    <div>Results: <strong data-testid="search-total">{{.Total}}</strong></div>
+    <div>Page: <strong data-testid="search-page">{{.Page}}</strong></div>
+  </div>
+
+  <div class="list" data-testid="search-results">
+    {{range .Results}}
+      <article class="item" data-testid="search-result" data-profile-id="{{.ID}}">
+        <div class="row between">
+          <div>
+            <div class="name" data-testid="search-result-name">{{.First}} {{.Last}}</div>
+            <div class="meta" data-testid="search-result-meta">{{.Title}} • {{.Company}} • {{.Location}}</div>
+          </div>
+          <a class="btn" href="/profile/{{.ID}}" data-testid="profile-link" data-profile-id="{{.ID}}">View</a>
+        </div>
+      </article>
+    {{end}}
+  </div>
+
+  <div class="row between" data-testid="search-pagination">
+    <div>
+      {{if .HasPrev}}
+        <a class="btn secondary" href="{{.PrevHref}}" data-testid="search-prev">Prev</a>
+      {{else}}
+        <span class="btn disabled" data-testid="search-prev-disabled">Prev</span>
+      {{end}}
+    </div>
+    <div>
+      {{if .HasNext}}
+        <a class="btn secondary" href="{{.NextHref}}" data-testid="search-next">Next</a>
+      {{else}}
+        <span class="btn disabled" data-testid="search-next-disabled">Next</span>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+{{template "layout" .}}

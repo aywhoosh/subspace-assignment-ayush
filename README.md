@@ -35,6 +35,9 @@ Commands:
 - `make lint`
 - `make run`
 
+Run the local mock app:
+- `go run ./cmd/subspace-assignment mocknet up`
+
 Windows note:
 - If you don’t have `make`, run the equivalent commands directly:
   - `go test ./...`

@@ -1,0 +1,41 @@
+{{define "layout"}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{.Base.Title}} - MockNet</title>
+  <link rel="stylesheet" href="/static/app.css" data-testid="app-css" />
+  <script defer src="/static/app.js" data-testid="app-js"></script>
+</head>
+<body>
+  <header class="topbar" data-testid="topbar">
+    <div class="container row">
+      <div class="brand" data-testid="brand">Mock Social Network</div>
+      <nav class="nav" data-testid="nav">
+        {{if .Base.Authed}}
+          <a href="/search" data-testid="nav-search">Search</a>
+          <a href="/connections" data-testid="nav-connections">Connections</a>
+          <a href="/messages" data-testid="nav-messages">Messages</a>
+          <span class="sep">|</span>
+          <span class="user" data-testid="nav-user">{{.Base.Username}}</span>
+          <a href="/logout" data-testid="nav-logout">Logout</a>
+        {{else}}
+          <a href="/login" data-testid="nav-login">Login</a>
+        {{end}}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" data-testid="main">
+    {{template "content" .}}
+  </main>
+
+  <footer class="footer" data-testid="footer">
+    <div class="container">
+      <small>Local-only mock app for UI testing demos. Base: {{.Base.BaseURL}}</small>
+    </div>
+  </footer>
+</body>
+</html>
+{{end}}
