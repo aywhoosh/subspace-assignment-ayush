@@ -27,6 +27,9 @@ Config inputs (added in commit 2):
 - YAML: `config.example.yaml` (copy to `config.yaml` later)
 - Env overrides: see `.env.example` (not committed as `.env`)
 
+Storage (added in commit 4):
+- SQLite database path is configured via `storage.sqlite_path` or `SUBSPACE_STORAGE_SQLITE_PATH`
+
 Commands:
 - `make test`
 - `make lint`
