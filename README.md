@@ -23,6 +23,10 @@ Prereqs:
 - Go (from `go.mod`)
 - `golangci-lint` (for `make lint`)
 
+Config inputs (added in commit 2):
+- YAML: `config.example.yaml` (copy to `config.yaml` later)
+- Env overrides: see `.env.example` (not committed as `.env`)
+
 Commands:
 - `make test`
 - `make lint`

@@ -1,0 +1,20 @@
+mocknet:
+  base_url: "http://localhost:8080"
+  port: 8080
+
+auth:
+  # Prefer env vars for credentials; this is a fallback.
+  username: "demo"
+  password: "demo"
+
+storage:
+  sqlite_path: "data/subspace.db"
+
+logging:
+  level: "info"
+  json: true
+
+run:
+  deterministic: false
+  seed: 1
+  timeout: 45s
