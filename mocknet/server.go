@@ -35,7 +35,7 @@ type Credentials struct {
 type Server struct {
 	cfg   Config
 	state *State
-	tpl   *template.Template
+	pages map[string]*template.Template
 }
 
 func New(cfg Config) (*Server, error) {
@@ -55,12 +55,39 @@ func New(cfg Config) (*Server, error) {
 	}
 	st := NewState(profiles)
 
-	tpl, err := template.ParseFS(webFS, "web/templates/*.html")
+	pages, err := parsePages()
 	if err != nil {
-		return nil, fmt.Errorf("mocknet: parse templates: %w", err)
+		return nil, err
 	}
 
-	return &Server{cfg: cfg, state: st, tpl: tpl}, nil
+	return &Server{cfg: cfg, state: st, pages: pages}, nil
+}
+
+func parsePages() (map[string]*template.Template, error) {
+	// Each page is parsed together with layout.html so the "content" template name
+	// does not collide across pages.
+	pageFiles := []string{
+		"home.html",
+		"login.html",
+		"checkpoint.html",
+		"search.html",
+		"profile.html",
+		"connections.html",
+		"messages.html",
+	}
+
+	pages := make(map[string]*template.Template, len(pageFiles))
+	for _, page := range pageFiles {
+		tpl, err := template.ParseFS(webFS,
+			"web/templates/layout.html",
+			"web/templates/"+page,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("mocknet: parse template %s: %w", page, err)
+		}
+		pages[page] = tpl
+	}
+	return pages, nil
 }
 
 func (s *Server) Addr() string {

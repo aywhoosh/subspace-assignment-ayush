@@ -20,7 +20,12 @@ type baseView struct {
 
 func (s *Server) render(w http.ResponseWriter, name string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := s.tpl.ExecuteTemplate(w, name, data); err != nil {
+	tpl, ok := s.pages[name]
+	if !ok {
+		http.Error(w, "unknown page template", http.StatusInternalServerError)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, name, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
