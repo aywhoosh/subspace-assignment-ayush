@@ -1,0 +1,21 @@
+# Binaries
+/bin/
+*.exe
+*.out
+
+# Artifacts (will be used later)
+/artifacts/
+
+# Local config / env
+.env
+*.local.yaml
+*.local.yml
+*.local.json
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
