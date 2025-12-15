@@ -78,31 +78,16 @@ func (h HumanBehavior) HumanType(ctx context.Context, el *rod.Element, text stri
 	return nil
 }
 
-// HumanClick performs a click with optional mouse movement simulation
+// HumanClick performs a click with optional delay simulation
 func (h HumanBehavior) HumanClick(ctx context.Context, page *rod.Page, el *rod.Element) error {
-	if h.EnableMouseMovement {
-		// Get element position
-		box, err := el.Shape()
-		if err != nil {
-			return err
+	// Small random delay before clicking (simulates human thinking/targeting)
+	if h.RandomDelayMax > 0 {
+		delay := h.RandomDelayMin + time.Duration(rand.Int63n(int64(h.RandomDelayMax-h.RandomDelayMin)))
+		select {
+		case <-time.After(delay / 3): // Shorter delay for clicks
+		case <-ctx.Done():
+			return ctx.Err()
 		}
-
-		// Calculate center of element using Quads
-		quads := box.Quads
-		if len(quads) > 0 {
-			quad := quads[0]
-			// Average of quad corners
-			centerX := (quad[0] + quad[2] + quad[4] + quad[6]) / 4
-			centerY := (quad[1] + quad[3] + quad[5] + quad[7]) / 4
-
-			// Move mouse to element (Rod's MoveLinear)
-			if err := page.Mouse.MoveLinear(proto.InputPoint{X: centerX, Y: centerY}, h.MouseSteps); err != nil {
-				return err
-			}
-		}
-
-		// Small random delay before clicking
-		h.RandomDelay(ctx)
 	}
 
 	// Perform the click
