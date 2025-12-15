@@ -67,7 +67,8 @@ func CookiesFromJSON(s string) ([]*proto.NetworkCookieParam, error) {
 }
 
 func GetAllCookies(ctx context.Context, b *rod.Browser) ([]*proto.NetworkCookie, error) {
-	res, err := proto.NetworkGetAllCookies{}.Call(b)
+	// Use Storage domain which is always available
+	res, err := proto.StorageGetCookies{}.Call(b)
 	if err != nil {
 		return nil, fmt.Errorf("browser: get cookies: %w", err)
 	}
@@ -78,9 +79,12 @@ func SetCookies(ctx context.Context, b *rod.Browser, cookies []*proto.NetworkCoo
 	if len(cookies) == 0 {
 		return nil
 	}
-	err := proto.NetworkSetCookies{Cookies: cookies}.Call(b)
-	if err != nil {
-		return fmt.Errorf("browser: set cookies: %w", err)
+	// Use Storage domain to set cookies
+	for _, c := range cookies {
+		err := proto.StorageSetCookies{Cookies: []*proto.NetworkCookieParam{c}}.Call(b)
+		if err != nil {
+			return fmt.Errorf("browser: set cookie %s: %w", c.Name, err)
+		}
 	}
 	return nil
 }

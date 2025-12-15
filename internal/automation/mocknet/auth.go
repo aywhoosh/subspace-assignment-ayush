@@ -82,11 +82,8 @@ func loginAndCaptureCookies(ctx context.Context, br *browser.Client, baseURL str
 	}
 	defer func() { _ = page.Close() }()
 
-	if timeout > 0 {
-		page = page.Timeout(timeout)
-	}
-
-	if err := page.WaitLoad(); err != nil {
+	// Use a simpler approach: don't set global page timeout, handle timeouts per operation
+	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
 		return "", "", fmt.Errorf("automation: wait load: %w", err)
 	}
 
@@ -96,35 +93,47 @@ func loginAndCaptureCookies(ctx context.Context, br *browser.Client, baseURL str
 	if err := typeInto(page, "[data-testid='login-password']", creds.Password); err != nil {
 		return "", "", err
 	}
-	// Wait for the login POST + redirect to complete.
-	waitNav := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
+	// Click login button and wait for the POST + redirect to complete
+	wait := page.MustWaitNavigation()
 	if err := click(page, "[data-testid='login-submit']"); err != nil {
 		return "", "", err
 	}
-	waitNav()
+	wait()
 
-	if isCheckpoint(page) {
-		return "", "", browser.ErrCheckpoint
+	// After successful login, we should be redirected to /search.
+	// Now we need to:
+	// 1. Verify we're authenticated by finding the username element
+	// 2. Capture the session cookies
+	// 3. Save everything to the database
+
+	// Wait for the page to be fully loaded and interactive
+	if err := page.WaitLoad(); err != nil {
+		return "", "", fmt.Errorf("automation: wait for search page: %w", err)
 	}
 
-	// If we landed somewhere other than /search, go there to validate.
-	_ = page.Navigate(baseURL + "/search")
-	_ = page.WaitLoad()
-
-	u, ok := readText(page, "[data-testid='nav-user']")
-	if !ok || strings.TrimSpace(u) == "" {
-		return "", "", errors.New("automation: login failed (not authenticated)")
+	// Look for the username element with a reasonable timeout
+	el, err := page.Timeout(5 * time.Second).Element("[data-testid='nav-user']")
+	if err != nil {
+		return "", "", fmt.Errorf("automation: nav-user not found (not authenticated): %w", err)
 	}
 
+	username, err := el.Text()
+	if err != nil || strings.TrimSpace(username) == "" {
+		return "", "", errors.New("automation: failed to read username from nav")
+	}
+
+	// Capture cookies from the browser to persist the session
 	cookies, err := browser.GetAllCookies(ctx, br.Browser())
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("automation: get cookies: %w", err)
 	}
+
 	cookiesJSON, err := browser.CookiesToJSON(cookies)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("automation: serialize cookies: %w", err)
 	}
-	return strings.TrimSpace(u), cookiesJSON, nil
+
+	return strings.TrimSpace(username), cookiesJSON, nil
 }
 
 func checkAuthed(ctx context.Context, br *browser.Client, baseURL string, timeout time.Duration) (string, bool) {
@@ -133,22 +142,21 @@ func checkAuthed(ctx context.Context, br *browser.Client, baseURL string, timeou
 		return "", false
 	}
 	defer func() { _ = page.Close() }()
-	if timeout > 0 {
-		page = page.Timeout(timeout)
-	}
-	_ = page.WaitLoad()
-	if isCheckpoint(page) {
+
+	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
 		return "", false
 	}
-	username, ok := readText(page, "[data-testid='nav-user']")
-	if !ok {
+
+	el, err := page.Timeout(5 * time.Second).Element("[data-testid='nav-user']")
+	if err != nil {
 		return "", false
 	}
-	username = strings.TrimSpace(username)
-	if username == "" {
+
+	username, err := el.Text()
+	if err != nil || strings.TrimSpace(username) == "" {
 		return "", false
 	}
-	return username, true
+	return strings.TrimSpace(username), true
 }
 
 func ensureLocalBaseURL(raw string) error {
