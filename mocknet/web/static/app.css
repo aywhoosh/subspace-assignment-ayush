@@ -50,7 +50,8 @@ a{color:var(--accent);text-decoration:none}
 
 .list{display:flex;flex-direction:column;gap:10px}
 .item{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
-.name{font-weight:800}
+.name{font-weight:700}
+[data-testid='search-result-name']{font-weight:600}
 .meta{color:var(--muted);font-size:13px;margin-top:4px}
 .empty{color:var(--muted);padding:12px}
 
