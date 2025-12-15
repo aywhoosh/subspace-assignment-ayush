@@ -34,6 +34,7 @@ type Config struct {
 type MocknetConfig struct {
 	BaseURL string `koanf:"base_url"`
 	Port    int    `koanf:"port"`
+	BrandName string `koanf:"brand_name"`
 }
 
 type AuthConfig struct {
@@ -66,6 +67,7 @@ func Default() Config {
 		Mocknet: MocknetConfig{
 			BaseURL: "http://localhost:8080",
 			Port:    8080,
+			BrandName: "Mock Professional Network",
 		},
 		Auth: AuthConfig{},
 		Storage: StorageConfig{

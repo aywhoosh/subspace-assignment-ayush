@@ -1,6 +1,7 @@
 mocknet:
   base_url: "http://localhost:8080"
   port: 8080
+  brand_name: "Mock Professional Network"
 
 auth:
   # Prefer env vars for credentials; this is a fallback.

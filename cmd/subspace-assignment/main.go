@@ -48,6 +48,7 @@ func main() {
 		srv, err := mocknet.New(mocknet.Config{
 			Port:              cfg.Mocknet.Port,
 			CheckpointEnabled: false,
+				BrandName:         cfg.Mocknet.BrandName,
 			SeedCredentials: mocknet.Credentials{
 				Username: firstNonEmpty(cfg.Auth.Username, os.Getenv("SUBSPACE_AUTH_USERNAME"), "demo"),
 				Password: firstNonEmpty(cfg.Auth.Password, os.Getenv("SUBSPACE_AUTH_PASSWORD"), "demo"),

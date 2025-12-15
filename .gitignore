@@ -6,6 +6,9 @@
 # Artifacts (will be used later)
 /artifacts/
 
+# Local branding assets (optional runtime-only)
+/logos/
+
 # Local config / env
 .env
 *.local.yaml

@@ -28,5 +28,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60.3
+          # Keep this aligned with the Go toolchain in go.mod.
+          # Older golangci-lint releases often lag new Go versions.
+          version: latest
           args: --timeout=5m

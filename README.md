@@ -38,9 +38,16 @@ Commands:
 Run the local mock app:
 - `go run ./cmd/subspace-assignment mocknet up`
 
+Open:
+- `http://localhost:8080/login`
+
 Run Rod automation against the local mock app (persists cookies to SQLite):
 - `go run ./cmd/subspace-assignment automate login`
 - `go run ./cmd/subspace-assignment automate check`
+
+Notes:
+- Stop the mock server with `Ctrl+C`.
+- The optional logo is served from your local `./logos` folder at `/brand/logo.png` (assets are intentionally ignored by git).
 
 Windows note:
 - If you don’t have `make`, run the equivalent commands directly:
