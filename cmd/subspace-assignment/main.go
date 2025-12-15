@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/app"
 	automationMocknet "github.com/aywhoosh/subspace-assignment-ayush/internal/automation/mocknet"
@@ -65,6 +66,42 @@ func main() {
 		ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer stop()
 		_ = srv.Run(ctx)
+		return
+	}
+
+	if len(args) >= 2 && args[0] == "automate" && args[1] == "doctor" {
+		bCfg := browser.Config{
+			Headless:      cfg.Browser.Headless,
+			SlowMo:        cfg.Browser.SlowMo,
+			Leakless:      cfg.Browser.Leakless,
+			BinPath:       cfg.Browser.BinPath,
+			AllowDownload: cfg.Browser.AllowDownload,
+		}
+		d, err := browser.Diagnose(bCfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		fmt.Println(d.String())
+
+		// Optional quick sanity check: launch + close.
+		// Keep a tight timeout so it doesn't hang.
+		ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+		defer cancel()
+		br, cleanup, err := browser.New(ctx, bCfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		p, err := br.NewPage("about:blank")
+		if err != nil {
+			_ = cleanup()
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		_ = p.Close()
+		_ = cleanup()
+		fmt.Println("browser: launch OK")
 		return
 	}
 

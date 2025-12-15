@@ -1,0 +1,51 @@
+Subspace Assignment – useful commands (Windows-friendly)
+
+1) Run tests (sanity check)
+- go test ./...
+
+2) Start the local mock website (MockNet)
+- go run ./cmd/subspace-assignment mocknet up
+  # Starts the local-only mock app server.
+  # Open: http://localhost:8080/login
+
+3) (Optional) Configure credentials for the mock app
+PowerShell:
+- $env:SUBSPACE_AUTH_USERNAME="demo"
+- $env:SUBSPACE_AUTH_PASSWORD="demo"
+
+cmd.exe:
+- set SUBSPACE_AUTH_USERNAME=demo
+- set SUBSPACE_AUTH_PASSWORD=demo
+
+4) Rod/Browser setup on Windows (recommended)
+PowerShell:
+- $env:SUBSPACE_BROWSER__LEAKLESS="false"
+- $env:SUBSPACE_BROWSER__ALLOW_DOWNLOAD="false"
+- $env:SUBSPACE_BROWSER__BIN_PATH="C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+  # Or point to Chrome: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe
+
+cmd.exe:
+- set SUBSPACE_BROWSER__LEAKLESS=false
+- set SUBSPACE_BROWSER__ALLOW_DOWNLOAD=false
+- set SUBSPACE_BROWSER__BIN_PATH=C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe
+
+5) Quick Rod diagnostic (fast)
+- go run ./cmd/subspace-assignment automate doctor
+  # Prints resolved browser binary + tries launch/close once.
+
+6) Run automation (local-only)
+- go run ./cmd/subspace-assignment automate login
+  # Logs into MockNet, persists cookies to SQLite.
+
+- go run ./cmd/subspace-assignment automate check
+  # Reuses stored cookies, verifies session is valid.
+
+7) (Optional) Slow down automation for debugging
+PowerShell:
+- $env:SUBSPACE_BROWSER__SLOW_MO="150ms"
+
+cmd.exe:
+- set SUBSPACE_BROWSER__SLOW_MO=150ms
+
+8) Push your commits to GitHub
+- git push origin main
