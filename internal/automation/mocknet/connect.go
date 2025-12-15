@@ -27,7 +27,7 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 		return fmt.Errorf("connect: button not found: %w", err)
 	}
 
-	if err := connectBtn.Click(rod.ClickOptions{}); err != nil {
+	if err := click(page, "[data-testid='profile-connect-btn']"); err != nil {
 		return fmt.Errorf("connect: click button: %w", err)
 	}
 
@@ -51,7 +51,7 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 		return nil
 	}
 
-	if err := sendBtn.Click(rod.ClickOptions{}); err != nil {
+	if err := click(page, "[data-testid='connect-send-btn']"); err != nil {
 		return fmt.Errorf("connect: send: %w", err)
 	}
 
