@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/browser"
-	"github.com/go-rod/rod"
 )
 
 // SendConnectionRequest sends a connection request to a user by profile ID
@@ -22,11 +21,6 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 	}
 
 	// Click connect button
-	connectBtn, err := page.Timeout(5 * time.Second).Element("[data-testid='profile-connect-btn']")
-	if err != nil {
-		return fmt.Errorf("connect: button not found: %w", err)
-	}
-
 	if err := click(page, "[data-testid='profile-connect-btn']"); err != nil {
 		return fmt.Errorf("connect: click button: %w", err)
 	}
@@ -45,7 +39,7 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 	}
 
 	// Click send/submit (either in modal or directly)
-	sendBtn, err := page.Timeout(5 * time.Second).Element("[data-testid='connect-send-btn']")
+	_, err = page.Timeout(5 * time.Second).Element("[data-testid='connect-send-btn']")
 	if err != nil {
 		// Maybe already sent without modal
 		return nil
