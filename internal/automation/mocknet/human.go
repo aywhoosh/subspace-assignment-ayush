@@ -87,16 +87,18 @@ func (h HumanBehavior) HumanClick(ctx context.Context, page *rod.Page, el *rod.E
 			return err
 		}
 
-		// Get current mouse position
-		mouse := page.Mouse
+		// Calculate center of element using Quads
+		quads := box.Quads
+		if len(quads) > 0 {
+			quad := quads[0]
+			// Average of quad corners
+			centerX := (quad[0] + quad[2] + quad[4] + quad[6]) / 4
+			centerY := (quad[1] + quad[3] + quad[5] + quad[7]) / 4
 
-		// Calculate center of element
-		centerX := box.Box().CenterX()
-		centerY := box.Box().CenterY()
-
-		// Move mouse to element in steps (smooth movement)
-		if err := mouse.Move(centerX, centerY, h.MouseSteps); err != nil {
-			return err
+			// Move mouse to element (Rod's MoveLinear)
+			if err := page.Mouse.MoveLinear(proto.InputPoint{X: centerX, Y: centerY}, h.MouseSteps); err != nil {
+				return err
+			}
 		}
 
 		// Small random delay before clicking
