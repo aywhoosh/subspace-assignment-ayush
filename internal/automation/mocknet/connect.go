@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/browser"
+	"github.com/go-rod/rod"
 )
 
 // SendConnectionRequest sends a connection request to a user by profile ID
@@ -16,21 +17,31 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 	}
 	defer func() { _ = page.Close() }()
 
+	return SendConnectionRequestWithPage(ctx, page, baseURL, profileID, note)
+}
+
+// SendConnectionRequestWithPage sends a connection request using an existing page
+func SendConnectionRequestWithPage(ctx context.Context, page *rod.Page, baseURL, profileID, note string) error {
+	// Navigate to profile
+	if err := page.Navigate(baseURL + "/profile/" + profileID); err != nil {
+		return fmt.Errorf("connect: navigate: %w", err)
+	}
+
 	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
 		return fmt.Errorf("connect: wait load: %w", err)
 	}
 
-	// Click connect button
-	if err := click(page, "[data-testid='profile-connect-btn']"); err != nil {
+	// Click connect button to open modal
+	if err := click(page, "[data-testid='connect-button']"); err != nil {
 		return fmt.Errorf("connect: click button: %w", err)
 	}
 
-	// Wait for note modal if it appears
+	// Wait for modal to appear
 	time.Sleep(500 * time.Millisecond)
 
-	// If note provided and modal exists, add note
+	// Fill note in the textarea
 	if note != "" {
-		noteEl, err := page.Timeout(2 * time.Second).Element("[data-testid='connect-note-input']")
+		noteEl, err := page.Timeout(5 * time.Second).Element("[data-testid='connect-note']")
 		if err == nil {
 			if err := noteEl.Input(note); err != nil {
 				return fmt.Errorf("connect: input note: %w", err)
@@ -38,18 +49,12 @@ func SendConnectionRequest(ctx context.Context, br *browser.Client, baseURL, pro
 		}
 	}
 
-	// Click send/submit (either in modal or directly)
-	_, err = page.Timeout(5 * time.Second).Element("[data-testid='connect-send-btn']")
-	if err != nil {
-		// Maybe already sent without modal
-		return nil
+	// Click send button in the modal
+	if err := click(page, "[data-testid='connect-send']"); err != nil {
+		return fmt.Errorf("connect: click send: %w", err)
 	}
 
-	if err := click(page, "[data-testid='connect-send-btn']"); err != nil {
-		return fmt.Errorf("connect: send: %w", err)
-	}
-
-	// Wait briefly for confirmation
+	// Wait for form submission
 	time.Sleep(500 * time.Millisecond)
 
 	return nil

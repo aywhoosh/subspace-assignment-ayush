@@ -65,12 +65,28 @@ a{color:var(--accent);text-decoration:none}
 
 @media(max-width:900px){.split{grid-template-columns:1fr}.threads{border-right:none;padding-right:0}.messages{grid-template-columns:1fr}}
 
-.messages{display:grid;grid-template-columns:300px 1fr;gap:12px}
-.threads{border-right:1px solid var(--border);padding-right:12px}
-.thread{display:block;border:1px solid var(--border);border-radius:12px;padding:10px;margin:10px 0;background:#fff}
-.thread.active{border-color:rgba(10,102,194,.55);background:var(--accent-weak)}
-.chat{display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:240px}
-.msg{display:flex}
+.messages{display:grid;grid-template-columns:340px 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);min-height:650px;max-height:650px}
+.threads{border-right:1px solid var(--border);padding:8px;background:#fff;overflow-y:auto;display:flex;flex-direction:column}
+.threads h2{font-size:16px;font-weight:700;padding:12px 8px 8px;margin:0;color:var(--text)}
+.menu.compact{padding:0;margin:8px 0}
+.menu-item{padding:8px 12px;font-size:13px;border-radius:6px;transition:all .12s ease}
+.thread{display:block;border:1px solid transparent;border-radius:8px;padding:14px 12px;margin:4px 0;background:#fff;transition:all .12s ease;cursor:pointer;position:relative}
+.thread:hover{background:#f8f9fa}
+.thread.active{background:#e7f3ff;border-color:rgba(10,102,194,.2)}
+.thread .name{font-weight:600;color:#191919;margin-bottom:5px;font-size:14px}
+.thread .meta{color:#666;font-size:12px}
+.threadview{display:flex;flex-direction:column;background:#fff;height:100%}
+.threadview > .row{padding:16px 20px;border-bottom:1px solid var(--border);background:#fafafa;min-height:60px}
+.threadview h2{font-size:16px;font-weight:700;margin:0;color:var(--text)}
+.chat{display:flex;flex-direction:column;gap:8px;padding:24px 20px;overflow-y:auto;flex:1;background:#f5f7fa}
+.msg{display:flex;margin:2px 0;align-items:flex-end}
 .msg.me{justify-content:flex-end}
-.bubble{max-width:70%;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--border)}
-.msg.me .bubble{background:var(--accent-weak);border-color:rgba(10,102,194,.25)}
+.msg.them{justify-content:flex-start}
+.bubble{max-width:60%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.45;word-wrap:break-word;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.msg.them .bubble{background:#fff;color:var(--text);border:1px solid #e0e0e0;border-bottom-left-radius:4px}
+.msg.me .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.threadview form{border-top:1px solid var(--border);padding:14px 18px;background:#fff;display:flex;gap:10px;align-items:center}
+.threadview form input[name="body"]{border:1px solid #d0d5db;border-radius:24px;padding:10px 16px;font-size:14px;flex:1;outline:none;transition:all .15s}
+.threadview form input[name="body"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(10,102,194,.08)}
+.threadview form button{border-radius:20px;padding:9px 20px;font-size:13px;font-weight:700}
+.empty{text-align:center;color:#666;padding:40px 20px;font-size:14px}

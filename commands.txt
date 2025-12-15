@@ -9,21 +9,41 @@ Start-Sleep 2
 # Server runs at: http://localhost:8080
 
 
-## 2. Run Automation
+## 2. Run Interactive Mode (Recommended)
+
+go run ./cmd/subspace-assignment interactive
+
+# This opens a persistent browser with menu options:
+# 1. Login to MockNet
+# 2. Search for profiles (shows profile IDs)
+# 3. Send connection request
+# 4. Send message
+# 5. Check session status
+# 6. View inbox
+
+
+## 3. Run Individual Automations
 
 go run ./cmd/subspace-assignment automate doctor
 go run ./cmd/subspace-assignment automate login
 go run ./cmd/subspace-assignment automate check
 
 
-## 3. Stop Server
+## 4. Stop Server and Clean Up
 
-Get-Job
-Stop-Job -Id 1
-Remove-Job -Id 1
+# Stop and remove all PowerShell jobs
+Get-Job | Stop-Job
+Get-Job | Remove-Job
+
+# Kill all lingering browser processes (if automation didn't close properly)
+Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
+Stop-Process -Name chrome -Force -ErrorAction SilentlyContinue
+
+# Or in one line:
+Get-Job | Stop-Job ; Get-Job | Remove-Job ; Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
 
 
-## 4. Run Tests
+## 5. Run Tests
 
 go test ./...
 

@@ -159,6 +159,71 @@ func checkAuthed(ctx context.Context, br *browser.Client, baseURL string, timeou
 	return strings.TrimSpace(username), true
 }
 
+// LoginWithPage performs login using an existing page (for interactive mode with persistent browser)
+func LoginWithPage(ctx context.Context, page *rod.Page, baseURL string, creds Credentials) (string, string, error) {
+	if err := ensureLocalBaseURL(baseURL); err != nil {
+		return "", "", err
+	}
+	if strings.TrimSpace(creds.Username) == "" {
+		creds.Username = "demo"
+	}
+	if strings.TrimSpace(creds.Password) == "" {
+		creds.Password = "demo"
+	}
+
+	// Navigate to login page
+	if err := page.Navigate(baseURL + "/login"); err != nil {
+		return "", "", fmt.Errorf("navigate to login: %w", err)
+	}
+	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
+		return "", "", fmt.Errorf("wait load: %w", err)
+	}
+
+	// Fill login form
+	if err := typeInto(page, "[data-testid='login-username']", creds.Username); err != nil {
+		return "", "", err
+	}
+	if err := typeInto(page, "[data-testid='login-password']", creds.Password); err != nil {
+		return "", "", err
+	}
+
+	// Click login button and wait for navigation
+	wait := page.MustWaitNavigation()
+	if err := click(page, "[data-testid='login-submit']"); err != nil {
+		return "", "", err
+	}
+	wait()
+
+	// Wait for page to load
+	if err := page.WaitLoad(); err != nil {
+		return "", "", fmt.Errorf("wait for search page: %w", err)
+	}
+
+	// Verify authentication by finding username element
+	el, err := page.Timeout(5 * time.Second).Element("[data-testid='nav-user']")
+	if err != nil {
+		return "", "", fmt.Errorf("nav-user not found (not authenticated): %w", err)
+	}
+
+	username, err := el.Text()
+	if err != nil || strings.TrimSpace(username) == "" {
+		return "", "", errors.New("failed to read username from nav")
+	}
+
+	// Capture cookies to save session
+	cookies, err := browser.GetAllCookies(ctx, page.Browser())
+	if err != nil {
+		return "", "", fmt.Errorf("get cookies: %w", err)
+	}
+
+	cookiesJSON, err := browser.CookiesToJSON(cookies)
+	if err != nil {
+		return "", "", fmt.Errorf("serialize cookies: %w", err)
+	}
+
+	return strings.TrimSpace(username), cookiesJSON, nil
+}
+
 func ensureLocalBaseURL(raw string) error {
 	u, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil {

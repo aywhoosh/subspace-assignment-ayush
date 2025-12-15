@@ -37,7 +37,7 @@
       <article class="item" data-testid="search-result" data-profile-id="{{.ID}}">
         <div class="row between">
           <div>
-            <div class="name" data-testid="search-result-name">{{.First}} {{.Last}}</div>
+            <div class="name" data-testid="search-result-name">{{.First}} {{.Last}} ({{.ID}})</div>
             <div class="meta" data-testid="search-result-meta">{{.Title}} • {{.Company}} • {{.Location}}</div>
           </div>
           <a class="btn" href="/profile/{{.ID}}" data-testid="profile-link" data-profile-id="{{.ID}}">View</a>

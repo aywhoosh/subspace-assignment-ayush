@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/browser"
+	"github.com/go-rod/rod"
 )
 
 // Message represents a single message in a conversation
@@ -17,11 +18,23 @@ type Message struct {
 
 // SendMessage sends a message to a user
 func SendMessage(ctx context.Context, br *browser.Client, baseURL, recipientID, messageText string) error {
-	page, err := br.NewPage(baseURL + "/messages/" + recipientID)
+	threadID := "t-" + recipientID
+	page, err := br.NewPage(baseURL + "/messages?thread=" + threadID)
 	if err != nil {
 		return fmt.Errorf("send message: new page: %w", err)
 	}
 	defer func() { _ = page.Close() }()
+
+	return SendMessageWithPage(ctx, page, baseURL, recipientID, messageText)
+}
+
+// SendMessageWithPage sends a message using an existing page
+func SendMessageWithPage(ctx context.Context, page *rod.Page, baseURL, recipientID, messageText string) error {
+	// Navigate to messages with thread query parameter
+	threadID := "t-" + recipientID
+	if err := page.Navigate(baseURL + "/messages?thread=" + threadID); err != nil {
+		return fmt.Errorf("send message: navigate: %w", err)
+	}
 
 	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
 		return fmt.Errorf("send message: wait load: %w", err)
@@ -38,7 +51,7 @@ func SendMessage(ctx context.Context, br *browser.Client, baseURL, recipientID, 
 	}
 
 	// Click send button
-	if err := click(page, "[data-testid='message-send-btn']"); err != nil {
+	if err := click(page, "[data-testid='message-send']"); err != nil {
 		return fmt.Errorf("send message: click send: %w", err)
 	}
 
@@ -50,7 +63,8 @@ func SendMessage(ctx context.Context, br *browser.Client, baseURL, recipientID, 
 
 // GetConversation retrieves messages from a conversation
 func GetConversation(ctx context.Context, br *browser.Client, baseURL, recipientID string) ([]Message, error) {
-	page, err := br.NewPage(baseURL + "/messages/" + recipientID)
+	threadID := "t-" + recipientID
+	page, err := br.NewPage(baseURL + "/messages?thread=" + threadID)
 	if err != nil {
 		return nil, fmt.Errorf("get conversation: new page: %w", err)
 	}

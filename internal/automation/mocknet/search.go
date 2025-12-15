@@ -149,3 +149,84 @@ func typeIntoIfExists(page *rod.Page, selector, value string) error {
 	}
 	return nil
 }
+
+// SearchOnPage performs search on an already-open page (for interactive mode)
+func SearchOnPage(ctx context.Context, page *rod.Page, opts SearchOptions) ([]SearchResult, error) {
+	// Page should already be on /search, just fill the form
+	if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
+		return nil, fmt.Errorf("search: wait load: %w", err)
+	}
+
+	// Fill search form if criteria provided
+	if opts.Title != "" {
+		if err := typeIntoIfExists(page, "[data-testid='search-title-input']", opts.Title); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Company != "" {
+		if err := typeIntoIfExists(page, "[data-testid='search-company-input']", opts.Company); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Location != "" {
+		if err := typeIntoIfExists(page, "[data-testid='search-location-input']", opts.Location); err != nil {
+			return nil, err
+		}
+	}
+	if opts.Keywords != "" {
+		if err := typeIntoIfExists(page, "[data-testid='search-keywords-input']", opts.Keywords); err != nil {
+			return nil, err
+		}
+	}
+
+	// Click search if any criteria was provided
+	if opts.Title != "" || opts.Company != "" || opts.Location != "" || opts.Keywords != "" {
+		wait := page.MustWaitNavigation()
+		if err := click(page, "[data-testid='search-submit']"); err != nil {
+			return nil, err
+		}
+		wait()
+		if err := page.Timeout(10 * time.Second).WaitLoad(); err != nil {
+			return nil, fmt.Errorf("search: wait after submit: %w", err)
+		}
+	}
+
+	// Parse results
+	resultsContainer, err := page.Timeout(5 * time.Second).Element("[data-testid='search-results']")
+	if err != nil {
+		return nil, fmt.Errorf("search: results container not found: %w", err)
+	}
+
+	resultElements, err := resultsContainer.Elements("[data-testid='search-result']")
+	if err != nil {
+		return []SearchResult{}, nil // No results is ok
+	}
+
+	var results []SearchResult
+	for _, el := range resultElements {
+		profileID, _ := el.Attribute("data-profile-id")
+		if profileID == nil {
+			continue
+		}
+
+		nameEl, err := el.Element("[data-testid='search-result-name']")
+		if err != nil {
+			continue
+		}
+		name, _ := nameEl.Text()
+
+		metaEl, err := el.Element("[data-testid='search-result-meta']")
+		if err != nil {
+			continue
+		}
+		meta, _ := metaEl.Text()
+
+		results = append(results, SearchResult{
+			ProfileID: *profileID,
+			Name:      name,
+			Title:     meta,
+		})
+	}
+
+	return results, nil
+}

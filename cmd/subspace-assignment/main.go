@@ -41,6 +41,15 @@ func main() {
 		return
 	}
 
+	// Interactive GUI mode
+	if len(args) >= 1 && args[0] == "interactive" {
+		if err := runInteractiveMode(ctx, cfg); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		return
+	}
+
 	// Minimal command surface for now.
 	if len(args) >= 2 && args[0] == "mocknet" && args[1] == "up" {
 		l := app.Logger(ctx, log)
@@ -165,6 +174,137 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("Session is valid. Authenticated as:", username)
+		return
+	}
+
+	if len(args) >= 2 && args[0] == "automate" && args[1] == "search" {
+		l := app.Logger(ctx, log)
+		(&l).Info().Str("base_url", cfg.Mocknet.BaseURL).Msg("starting search automation")
+
+		db, repos, err := openRepos(ctx, cfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = db.Close() }()
+
+		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo, Leakless: cfg.Browser.Leakless, BinPath: cfg.Browser.BinPath, AllowDownload: cfg.Browser.AllowDownload})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = cleanup() }()
+
+		// Ensure authenticated first
+		_, err = automationMocknet.EnsureAuthed(ctx, br, repos, cfg.Mocknet.BaseURL, automationMocknet.Credentials{
+			Username: cfg.Auth.Username,
+			Password: cfg.Auth.Password,
+		}, automationMocknet.Options{Timeout: cfg.Run.Timeout})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "authentication required:", err.Error())
+			os.Exit(1)
+		}
+
+		// Execute search with basic filters
+		searchOpts := automationMocknet.SearchOptions{
+			Title:    "Engineer",
+			Company:  "",
+			Location: "",
+			Keywords: "",
+		}
+
+		results, err := automationMocknet.Search(ctx, br, cfg.Mocknet.BaseURL, searchOpts)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "search failed:", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("Found %d results:\n", len(results))
+		for i, r := range results {
+			fmt.Printf("%d. %s (ID: %s) - %s\n", i+1, r.Name, r.ProfileID, r.Title)
+		}
+		return
+	}
+
+	if len(args) >= 3 && args[0] == "automate" && args[1] == "connect" {
+		profileID := args[2]
+		l := app.Logger(ctx, log)
+		(&l).Info().Str("profile_id", profileID).Msg("starting connect automation")
+
+		db, repos, err := openRepos(ctx, cfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = db.Close() }()
+
+		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo, Leakless: cfg.Browser.Leakless, BinPath: cfg.Browser.BinPath, AllowDownload: cfg.Browser.AllowDownload})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = cleanup() }()
+
+		// Ensure authenticated
+		_, err = automationMocknet.EnsureAuthed(ctx, br, repos, cfg.Mocknet.BaseURL, automationMocknet.Credentials{
+			Username: cfg.Auth.Username,
+			Password: cfg.Auth.Password,
+		}, automationMocknet.Options{Timeout: cfg.Run.Timeout})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "authentication required:", err.Error())
+			os.Exit(1)
+		}
+
+		// Send connection request
+		note := "I'd like to connect with you!"
+		err = automationMocknet.SendConnectionRequest(ctx, br, cfg.Mocknet.BaseURL, profileID, note)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "connection request failed:", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("✓ Connection request sent to profile %s\n", profileID)
+		return
+	}
+
+	if len(args) >= 4 && args[0] == "automate" && args[1] == "message" {
+		userID := args[2]
+		messageText := strings.Join(args[3:], " ")
+		l := app.Logger(ctx, log)
+		(&l).Info().Str("user_id", userID).Msg("starting message automation")
+
+		db, repos, err := openRepos(ctx, cfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = db.Close() }()
+
+		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo, Leakless: cfg.Browser.Leakless, BinPath: cfg.Browser.BinPath, AllowDownload: cfg.Browser.AllowDownload})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer func() { _ = cleanup() }()
+
+		// Ensure authenticated
+		_, err = automationMocknet.EnsureAuthed(ctx, br, repos, cfg.Mocknet.BaseURL, automationMocknet.Credentials{
+			Username: cfg.Auth.Username,
+			Password: cfg.Auth.Password,
+		}, automationMocknet.Options{Timeout: cfg.Run.Timeout})
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "authentication required:", err.Error())
+			os.Exit(1)
+		}
+
+		// Send message
+		err = automationMocknet.SendMessage(ctx, br, cfg.Mocknet.BaseURL, userID, messageText)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "message send failed:", err.Error())
+			os.Exit(1)
+		}
+
+		fmt.Printf("✓ Message sent to user %s\n", userID)
 		return
 	}
 

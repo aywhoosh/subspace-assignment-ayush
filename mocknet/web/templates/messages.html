@@ -13,16 +13,7 @@
 
   <div class="messages" data-testid="messages-layout">
     <aside class="threads" data-testid="threads">
-      <div class="row between">
-        <h2 data-testid="threads-title">Inbox</h2>
-        <span class="badge" data-testid="threads-count">{{.ThreadCount}}</span>
-      </div>
-
-      <nav class="menu compact" data-testid="messages-menu">
-        <a class="menu-item active" href="/messages" data-testid="messages-menu-inbox">Inbox</a>
-        <a class="menu-item" href="/messages" data-testid="messages-menu-archived">Archived</a>
-        <a class="menu-item" href="/messages" data-testid="messages-menu-spam">Spam</a>
-      </nav>
+      <h2 data-testid="threads-title">Messages</h2>
 
       {{range .Threads}}
         <a class="thread {{if eq $.SelectedThreadID .ThreadID}}active{{end}}" href="/messages?thread={{.ThreadID}}" data-testid="thread-link" data-thread-id="{{.ThreadID}}" data-profile-id="{{.ProfileID}}">
@@ -30,7 +21,7 @@
           <div class="meta">{{.Company}}</div>
         </a>
       {{else}}
-        <div class="empty" data-testid="threads-empty">No threads yet. Accept a connection first.</div>
+        <div class="empty" data-testid="threads-empty">No conversations yet<br><small>Accept a connection to start messaging</small></div>
       {{end}}
     </aside>
 
@@ -38,8 +29,10 @@
       {{if .SelectedThreadID}}
         {{$p := index .Profiles .SelectedProfileID}}
         <div class="row between">
-          <h2 data-testid="thread-title">{{$p.First}} {{$p.Last}}</h2>
-          <span class="badge" data-testid="thread-id">{{.SelectedThreadID}}</span>
+          <div>
+            <h2 data-testid="thread-title">{{$p.First}} {{$p.Last}}</h2>
+            <div class="meta">{{$p.Title}} • {{$p.Company}}</div>
+          </div>
         </div>
 
         <div class="chat" data-testid="message-list">
@@ -52,11 +45,46 @@
           {{end}}
         </div>
 
-        <form method="post" action="/messages/send" class="row" data-testid="message-form">
+        <form method="post" action="/messages/send" class="row" data-testid="message-form" id="message-form">
           <input type="hidden" name="profile_id" value="{{.SelectedProfileID}}" data-testid="message-profile-id" />
-          <input name="body" class="grow" placeholder="Type a message..." data-testid="message-input" />
-          <button type="submit" class="btn" data-testid="message-send">Send</button>
+          <input name="body" class="grow" placeholder="Type a message..." data-testid="message-input" id="message-input" />
+          <button type="button" class="btn" data-testid="message-send" id="send-btn">Send</button>
         </form>
+        <script>
+          document.getElementById('send-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const profileId = document.querySelector('input[name="profile_id"]').value;
+            const body = input.value.trim();
+            
+            if (!body) return;
+            
+            console.log('Sending message:', { profileId, body });
+            
+            try {
+              const response = await fetch('/messages/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'profile_id=' + encodeURIComponent(profileId) + '&body=' + encodeURIComponent(body)
+              });
+              
+              console.log('Response status:', response.status);
+              
+              if (response.ok) {
+                console.log('Message sent successfully');
+                input.value = '';
+                window.location.reload();
+              } else {
+                const text = await response.text();
+                console.error('Error:', text);
+                alert('Error sending message: ' + text);
+              }
+            } catch (error) {
+              console.error('Fetch error:', error);
+              alert('Network error: ' + error.message);
+            }
+          });
+        </script>
       {{else}}
         <div class="empty" data-testid="message-select">Select a thread.</div>
       {{end}}
