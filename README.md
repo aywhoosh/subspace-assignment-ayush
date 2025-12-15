@@ -38,6 +38,10 @@ Commands:
 Run the local mock app:
 - `go run ./cmd/subspace-assignment mocknet up`
 
+Run Rod automation against the local mock app (persists cookies to SQLite):
+- `go run ./cmd/subspace-assignment automate login`
+- `go run ./cmd/subspace-assignment automate check`
+
 Windows note:
 - If you don’t have `make`, run the equivalent commands directly:
   - `go test ./...`

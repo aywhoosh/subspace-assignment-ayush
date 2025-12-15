@@ -26,6 +26,7 @@ type Config struct {
 	Mocknet MocknetConfig `koanf:"mocknet"`
 	Auth    AuthConfig    `koanf:"auth"`
 	Storage StorageConfig `koanf:"storage"`
+	Browser BrowserConfig `koanf:"browser"`
 	Logging LoggingConfig `koanf:"logging"`
 	Run     RunConfig     `koanf:"run"`
 }
@@ -42,6 +43,11 @@ type AuthConfig struct {
 
 type StorageConfig struct {
 	SQLitePath string `koanf:"sqlite_path"`
+}
+
+type BrowserConfig struct {
+	Headless bool          `koanf:"headless"`
+	SlowMo   time.Duration `koanf:"slow_mo"`
 }
 
 type LoggingConfig struct {
@@ -64,6 +70,10 @@ func Default() Config {
 		Auth: AuthConfig{},
 		Storage: StorageConfig{
 			SQLitePath: filepath.FromSlash("data/subspace.db"),
+		},
+		Browser: BrowserConfig{
+			Headless: true,
+			SlowMo:   0,
 		},
 		Logging: LoggingConfig{
 			Level: "info",
@@ -153,6 +163,16 @@ func applyEnvOverrides(k *koanf.Koanf) {
 
 		// Parse known types to avoid decode surprises.
 		switch cfgKey {
+		case "browser.headless":
+			if b, err := strconv.ParseBool(val); err == nil {
+				_ = k.Set(cfgKey, b)
+				continue
+			}
+		case "browser.slow_mo":
+			if d, err := time.ParseDuration(val); err == nil {
+				_ = k.Set(cfgKey, d)
+				continue
+			}
 		case "mocknet.port":
 			if p, err := strconv.Atoi(val); err == nil {
 				_ = k.Set(cfgKey, p)
@@ -209,6 +229,10 @@ func Validate(cfg Config) error {
 
 	if strings.TrimSpace(cfg.Storage.SQLitePath) == "" {
 		problems = append(problems, "storage.sqlite_path is required")
+	}
+
+	if cfg.Browser.SlowMo < 0 {
+		problems = append(problems, "browser.slow_mo must be >= 0")
 	}
 
 	switch strings.ToLower(strings.TrimSpace(cfg.Logging.Level)) {
