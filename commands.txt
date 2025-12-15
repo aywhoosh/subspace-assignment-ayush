@@ -1,51 +1,33 @@
-Subspace Assignment – useful commands (Windows-friendly)
+# Quick Start Guide
 
-1) Run tests (sanity check)
-- go test ./...
+## 1. Start Mock Server (Required)
 
-2) Start the local mock website (MockNet)
-- go run ./cmd/subspace-assignment mocknet up
-  # Starts the local-only mock app server.
-  # Open: http://localhost:8080/login
-
-3) (Optional) Configure credentials for the mock app
 PowerShell:
-- $env:SUBSPACE_AUTH_USERNAME="demo"
-- $env:SUBSPACE_AUTH_PASSWORD="demo"
+Start-Job -ScriptBlock { Set-Location C:\Users\Ayush\Desktop\subspace ; go run ./cmd/subspace-assignment mocknet up }
+Start-Sleep 2
 
-cmd.exe:
-- set SUBSPACE_AUTH_USERNAME=demo
-- set SUBSPACE_AUTH_PASSWORD=demo
+# Server runs at: http://localhost:8080
 
-4) Rod/Browser setup on Windows (recommended)
-PowerShell:
-- $env:SUBSPACE_BROWSER__LEAKLESS="false"
-- $env:SUBSPACE_BROWSER__ALLOW_DOWNLOAD="false"
-- $env:SUBSPACE_BROWSER__BIN_PATH="C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-  # Or point to Chrome: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe
 
-cmd.exe:
-- set SUBSPACE_BROWSER__LEAKLESS=false
-- set SUBSPACE_BROWSER__ALLOW_DOWNLOAD=false
-- set SUBSPACE_BROWSER__BIN_PATH=C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe
+## 2. Run Automation
 
-5) Quick Rod diagnostic (fast)
-- go run ./cmd/subspace-assignment automate doctor
-  # Prints resolved browser binary + tries launch/close once.
+go run ./cmd/subspace-assignment automate doctor
+go run ./cmd/subspace-assignment automate login
+go run ./cmd/subspace-assignment automate check
 
-6) Run automation (local-only)
-- go run ./cmd/subspace-assignment automate login
-  # Logs into MockNet, persists cookies to SQLite.
 
-- go run ./cmd/subspace-assignment automate check
-  # Reuses stored cookies, verifies session is valid.
+## 3. Stop Server
 
-7) (Optional) Slow down automation for debugging
-PowerShell:
-- $env:SUBSPACE_BROWSER__SLOW_MO="150ms"
+Get-Job
+Stop-Job -Id 1
+Remove-Job -Id 1
 
-cmd.exe:
-- set SUBSPACE_BROWSER__SLOW_MO=150ms
 
-8) Push your commits to GitHub
-- git push origin main
+## 4. Run Tests
+
+go test ./...
+
+
+## Optional: Set Browser Path (if auto-detection fails)
+
+$env:SUBSPACE_BROWSER__BIN_PATH="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
