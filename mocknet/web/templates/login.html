@@ -1,6 +1,6 @@
 {{define "content"}}
 <section class="card" data-testid="login-card">
-  <h1 data-testid="login-title">Login</h1>
+  <h1 data-testid="login-title">Sign in</h1>
   {{if .Err}}
     <div class="alert error" data-testid="login-error">{{.Err}}</div>
   {{end}}
@@ -20,7 +20,7 @@
 
     <button type="submit" class="btn" data-testid="login-submit">Sign in</button>
 
-    <p class="hint" data-testid="login-hint">Default credentials: <code>demo</code> / <code>demo</code></p>
+    <p class="hint" data-testid="login-hint">Local demo credentials: <code>demo</code> / <code>demo</code></p>
   </form>
 </section>
 {{end}}

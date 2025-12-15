@@ -25,6 +25,10 @@ type Config struct {
 	CheckpointEnabled bool
 
 	SeedCredentials Credentials
+
+	// Optional branding for the local mock app.
+	// If left empty, the server will use a neutral default.
+	BrandName string
 }
 
 type Credentials struct {
@@ -41,6 +45,9 @@ type Server struct {
 func New(cfg Config) (*Server, error) {
 	if cfg.Port == 0 {
 		cfg.Port = 8080
+	}
+	if strings.TrimSpace(cfg.BrandName) == "" {
+		cfg.BrandName = "Mock Professional Network"
 	}
 	if strings.TrimSpace(cfg.SeedCredentials.Username) == "" {
 		cfg.SeedCredentials.Username = "demo"
@@ -100,6 +107,9 @@ func (s *Server) BaseURL() string {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+
+	// Optional runtime-served branding assets (NOT embedded).
+	mux.HandleFunc("GET /brand/logo.png", s.handleBrandLogo)
 
 	mux.HandleFunc("GET /", s.handleHome)
 	mux.HandleFunc("GET /login", s.handleLoginGet)

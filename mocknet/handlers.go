@@ -3,8 +3,11 @@ package mocknet
 import (
 	"errors"
 	"fmt"
-	"net/url"
+	"io"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,9 +16,71 @@ const cookieSession = "mocknet_session"
 type baseView struct {
 	Title    string
 	BaseURL  string
+	Brand    string
+	LogoURL  string
 	Authed   bool
 	Username string
 	Flash    string
+}
+
+func (s *Server) baseView(r *http.Request, title string) baseView {
+	v := baseView{
+		Title:   title,
+		BaseURL: s.BaseURL(),
+		Brand:   s.cfg.BrandName,
+	}
+	// Expose logo if available on disk.
+	if s.hasBrandLogo() {
+		v.LogoURL = "/brand/logo.png"
+	}
+	if u, ok := s.sessionUsername(r); ok {
+		v.Authed = true
+		v.Username = u
+	}
+	return v
+}
+
+func (s *Server) hasBrandLogo() bool {
+	_, err := findBrandLogoPath()
+	return err == nil
+}
+
+func findBrandLogoPath() (string, error) {
+	// We intentionally read from the repo-local ./logos folder at runtime.
+	// This avoids embedding or committing third-party assets.
+	candidates := []string{
+		filepath.FromSlash("logos/brand.png"),
+		filepath.FromSlash("logos/LI-Logo.png"),
+		filepath.FromSlash("logos/LI-In-Bug.png"),
+		filepath.FromSlash("logos/InBug-Black.png"),
+		filepath.FromSlash("logos/InBug-White.png"),
+	}
+	for _, p := range candidates {
+		if st, err := os.Stat(p); err == nil && !st.IsDir() {
+			return p, nil
+		}
+	}
+	return "", os.ErrNotExist
+}
+
+func (s *Server) handleBrandLogo(w http.ResponseWriter, r *http.Request) {
+	p, err := findBrandLogoPath()
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	f, err := os.Open(p)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	defer func() { _ = f.Close() }()
+
+	// Keep it cacheable for a short window.
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	_, _ = io.Copy(w, f)
 }
 
 func (s *Server) render(w http.ResponseWriter, name string, data any) {
@@ -52,18 +117,12 @@ func (s *Server) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
-	username, authed := s.sessionUsername(r)
 	data := struct {
 		Base baseView
 	}{
-		Base: baseView{
-			Title:    "MockNet",
-			BaseURL:  s.BaseURL(),
-			Authed:   authed,
-			Username: username,
-		},
+		Base: s.baseView(r, "Home"),
 	}
-	if authed {
+	if data.Base.Authed {
 		http.Redirect(w, r, "/search", http.StatusFound)
 		return
 	}
@@ -71,8 +130,7 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
-	_, authed := s.sessionUsername(r)
-	if authed {
+	if s.baseView(r, "").Authed {
 		http.Redirect(w, r, "/search", http.StatusFound)
 		return
 	}
@@ -82,7 +140,7 @@ func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {
 		Next string
 		Err  string
 	}{
-		Base: baseView{Title: "Login", BaseURL: s.BaseURL()},
+		Base: s.baseView(r, "Sign in"),
 		Next: safeRedirectPath(r.URL.Query().Get("next")),
 	}
 	s.render(w, "login.html", data)
@@ -107,7 +165,7 @@ func (s *Server) handleLoginPost(w http.ResponseWriter, r *http.Request) {
 			Next string
 			Err  string
 		}{
-			Base: baseView{Title: "Login", BaseURL: s.BaseURL()},
+			Base: s.baseView(r, "Sign in"),
 			Next: next,
 			Err:  "Invalid credentials (this is a local mock app).",
 		}
@@ -146,8 +204,8 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCheckpointGet(w http.ResponseWriter, r *http.Request) {
-	username, authed := s.sessionUsername(r)
-	if !authed {
+	base := s.baseView(r, "Checkpoint")
+	if !base.Authed {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -156,7 +214,7 @@ func (s *Server) handleCheckpointGet(w http.ResponseWriter, r *http.Request) {
 		Base baseView
 		Next string
 	}{
-		Base: baseView{Title: "Checkpoint", BaseURL: s.BaseURL(), Authed: true, Username: username},
+		Base: base,
 		Next: safeRedirectPath(r.URL.Query().Get("next")),
 	}
 	s.render(w, "checkpoint.html", data)

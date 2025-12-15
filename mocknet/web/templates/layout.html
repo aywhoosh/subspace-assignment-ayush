@@ -11,7 +11,12 @@
 <body>
   <header class="topbar" data-testid="topbar">
     <div class="container row">
-      <div class="brand" data-testid="brand">Mock Social Network</div>
+      <div class="brand" data-testid="brand">
+        {{if .Base.LogoURL}}
+          <img class="brand-logo" src="{{.Base.LogoURL}}" alt="{{.Base.Brand}}" />
+        {{end}}
+        <span class="brand-name">{{.Base.Brand}}</span>
+      </div>
       <nav class="nav" data-testid="nav">
         {{if .Base.Authed}}
           <a href="/search" data-testid="nav-search">Search</a>
@@ -33,7 +38,7 @@
 
   <footer class="footer" data-testid="footer">
     <div class="container">
-      <small>Local-only mock app for UI testing demos. Base: {{.Base.BaseURL}}</small>
+      <small>Local-only mock app for automation demos. Base: {{.Base.BaseURL}}</small>
     </div>
   </footer>
 </body>
