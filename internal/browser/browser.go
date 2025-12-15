@@ -2,6 +2,7 @@ package browser
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +12,11 @@ import (
 )
 
 type Config struct {
-	Headless bool
-	SlowMo   time.Duration
+	Headless      bool
+	SlowMo        time.Duration
+	Leakless      bool
+	BinPath       string
+	AllowDownload bool
 }
 
 type Client struct {
@@ -20,7 +24,20 @@ type Client struct {
 }
 
 func New(ctx context.Context, cfg Config) (*Client, func() error, error) {
-	l := launcher.New().Headless(cfg.Headless)
+	l := launcher.New().Headless(cfg.Headless).Leakless(cfg.Leakless)
+
+	r, err := resolveBrowserBin(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	if r.Path != "" {
+		l = l.Bin(r.Path)
+	} else if !cfg.AllowDownload {
+		return nil, nil, errors.New(
+			"browser: no system browser found. Set browser.bin_path (env SUBSPACE_BROWSER__BIN_PATH) to Chrome/Edge, or set browser.allow_download=true to let Rod download Chromium",
+		)
+	}
+
 	controlURL, err := l.Launch()
 	if err != nil {
 		return nil, nil, fmt.Errorf("browser: launch: %w", err)

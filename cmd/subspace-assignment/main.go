@@ -9,8 +9,8 @@ import (
 	"strings"
 	"syscall"
 
-	automationMocknet "github.com/aywhoosh/subspace-assignment-ayush/internal/automation/mocknet"
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/app"
+	automationMocknet "github.com/aywhoosh/subspace-assignment-ayush/internal/automation/mocknet"
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/browser"
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/config"
 	"github.com/aywhoosh/subspace-assignment-ayush/internal/logging"
@@ -48,7 +48,7 @@ func main() {
 		srv, err := mocknet.New(mocknet.Config{
 			Port:              cfg.Mocknet.Port,
 			CheckpointEnabled: false,
-				BrandName:         cfg.Mocknet.BrandName,
+			BrandName:         cfg.Mocknet.BrandName,
 			SeedCredentials: mocknet.Credentials{
 				Username: firstNonEmpty(cfg.Auth.Username, os.Getenv("SUBSPACE_AUTH_USERNAME"), "demo"),
 				Password: firstNonEmpty(cfg.Auth.Password, os.Getenv("SUBSPACE_AUTH_PASSWORD"), "demo"),
@@ -79,7 +79,7 @@ func main() {
 		}
 		defer func() { _ = db.Close() }()
 
-		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo})
+		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo, Leakless: cfg.Browser.Leakless, BinPath: cfg.Browser.BinPath, AllowDownload: cfg.Browser.AllowDownload})
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
@@ -112,7 +112,7 @@ func main() {
 		}
 		defer func() { _ = db.Close() }()
 
-		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo})
+		br, cleanup, err := browser.New(ctx, browser.Config{Headless: cfg.Browser.Headless, SlowMo: cfg.Browser.SlowMo, Leakless: cfg.Browser.Leakless, BinPath: cfg.Browser.BinPath, AllowDownload: cfg.Browser.AllowDownload})
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

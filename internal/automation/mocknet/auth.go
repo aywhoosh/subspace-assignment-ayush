@@ -50,7 +50,7 @@ func EnsureAuthed(ctx context.Context, br *browser.Client, repos *storage.Reposi
 			_ = browser.SetCookies(ctx, br.Browser(), params)
 			if username, ok := checkAuthed(ctx, br, baseURL, opts.Timeout); ok {
 				_ = repos.Sessions.Upsert(ctx, storage.Session{
-					Key:        key,
+					Key:         key,
 					CookiesJSON: s.CookiesJSON,
 					CreatedAt:   s.CreatedAt,
 					LastUsedAt:  time.Now().UTC(),
@@ -67,7 +67,7 @@ func EnsureAuthed(ctx context.Context, br *browser.Client, repos *storage.Reposi
 	}
 
 	if err := repos.Sessions.Upsert(ctx, storage.Session{
-		Key:        key,
+		Key:         key,
 		CookiesJSON: cookiesJSON,
 	}); err != nil {
 		return "", err
@@ -96,10 +96,12 @@ func loginAndCaptureCookies(ctx context.Context, br *browser.Client, baseURL str
 	if err := typeInto(page, "[data-testid='login-password']", creds.Password); err != nil {
 		return "", "", err
 	}
+	// Wait for the login POST + redirect to complete.
+	waitNav := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
 	if err := click(page, "[data-testid='login-submit']"); err != nil {
 		return "", "", err
 	}
-	_ = page.WaitLoad()
+	waitNav()
 
 	if isCheckpoint(page) {
 		return "", "", browser.ErrCheckpoint

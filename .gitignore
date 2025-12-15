@@ -6,6 +6,9 @@
 # Artifacts (will be used later)
 /artifacts/
 
+# Local runtime data
+/data/
+
 # Local branding assets (optional runtime-only)
 /logos/
 

@@ -55,5 +55,11 @@ Windows note:
   - `golangci-lint run`
   - `go run ./cmd/subspace-assignment --help`
 
+Rod on Windows note (Defender / AV):
+- This project prefers using a system-installed browser (Edge/Chrome) instead of downloading a bundled Chromium.
+- If automation fails to launch a browser, set `SUBSPACE_BROWSER__BIN_PATH` to your browser executable.
+- If your machine blocks Rod’s leakless helper, keep `SUBSPACE_BROWSER__LEAKLESS=false` (default).
+- If you explicitly want Rod to download Chromium, set `SUBSPACE_BROWSER__ALLOW_DOWNLOAD=true`.
+
 ## Roadmap
 We will add (in small commits): config, logging, SQLite storage, mock server + pages with stable selectors, Rod session wrapper, human-like interactions, workflows, templates, integration tests, and docs.

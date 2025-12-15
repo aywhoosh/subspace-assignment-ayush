@@ -14,6 +14,15 @@ storage:
 browser:
   headless: true
   slow_mo: 0ms
+  # Windows Defender note:
+  # Rod's default leakless helper can be flagged by AV on some machines.
+  # Keep this false to avoid leakless.exe.
+  leakless: false
+  # Optional explicit browser binary path (Chrome/Edge). If unset, we'll try to auto-detect.
+  bin_path: ""
+  # If true, Rod may download a bundled Chromium revision when no system browser is found.
+  # Keep this false on Windows to avoid AV issues.
+  allow_download: false
 
 logging:
   level: "info"

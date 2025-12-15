@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/structs"
+	"github.com/knadh/koanf/v2"
 )
 
 // Config is the root configuration model for this project.
@@ -32,8 +32,8 @@ type Config struct {
 }
 
 type MocknetConfig struct {
-	BaseURL string `koanf:"base_url"`
-	Port    int    `koanf:"port"`
+	BaseURL   string `koanf:"base_url"`
+	Port      int    `koanf:"port"`
 	BrandName string `koanf:"brand_name"`
 }
 
@@ -47,8 +47,11 @@ type StorageConfig struct {
 }
 
 type BrowserConfig struct {
-	Headless bool          `koanf:"headless"`
-	SlowMo   time.Duration `koanf:"slow_mo"`
+	Headless      bool          `koanf:"headless"`
+	SlowMo        time.Duration `koanf:"slow_mo"`
+	Leakless      bool          `koanf:"leakless"`
+	BinPath       string        `koanf:"bin_path"`
+	AllowDownload bool          `koanf:"allow_download"`
 }
 
 type LoggingConfig struct {
@@ -65,8 +68,8 @@ type RunConfig struct {
 func Default() Config {
 	return Config{
 		Mocknet: MocknetConfig{
-			BaseURL: "http://localhost:8080",
-			Port:    8080,
+			BaseURL:   "http://localhost:8080",
+			Port:      8080,
 			BrandName: "Mock Professional Network",
 		},
 		Auth: AuthConfig{},
@@ -74,8 +77,11 @@ func Default() Config {
 			SQLitePath: filepath.FromSlash("data/subspace.db"),
 		},
 		Browser: BrowserConfig{
-			Headless: true,
-			SlowMo:   0,
+			Headless:      true,
+			SlowMo:        0,
+			Leakless:      false,
+			BinPath:       "",
+			AllowDownload: false,
 		},
 		Logging: LoggingConfig{
 			Level: "info",
@@ -92,9 +98,9 @@ func Default() Config {
 // Load reads configuration from a YAML file (optional) and environment variables.
 //
 // Precedence (highest first):
-//  1) Environment variables
-//  2) Config file
-//  3) Defaults
+//  1. Environment variables
+//  2. Config file
+//  3. Defaults
 func Load(configPath string) (Config, error) {
 	k := koanf.New(".")
 
@@ -127,7 +133,6 @@ func Load(configPath string) (Config, error) {
 	}
 	return cfg, nil
 }
-
 
 func applyEnvOverrides(k *koanf.Koanf) {
 	if v := os.Getenv("SUBSPACE_AUTH_USERNAME"); strings.TrimSpace(v) != "" {
@@ -173,6 +178,16 @@ func applyEnvOverrides(k *koanf.Koanf) {
 		case "browser.slow_mo":
 			if d, err := time.ParseDuration(val); err == nil {
 				_ = k.Set(cfgKey, d)
+				continue
+			}
+		case "browser.leakless":
+			if b, err := strconv.ParseBool(val); err == nil {
+				_ = k.Set(cfgKey, b)
+				continue
+			}
+		case "browser.allow_download":
+			if b, err := strconv.ParseBool(val); err == nil {
+				_ = k.Set(cfgKey, b)
 				continue
 			}
 		case "mocknet.port":
