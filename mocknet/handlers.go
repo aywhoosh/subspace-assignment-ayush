@@ -238,8 +238,6 @@ func (s *Server) handleCheckpointPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleSearchGet(w http.ResponseWriter, r *http.Request) {
-	username, _ := s.sessionUsername(r)
-
 	q := SearchQuery{
 		Title:    r.URL.Query().Get("title"),
 		Company:  r.URL.Query().Get("company"),
@@ -285,7 +283,7 @@ func (s *Server) handleSearchGet(w http.ResponseWriter, r *http.Request) {
 		PrevHref string
 		NextHref string
 	}{
-		Base: baseView{Title: "Search", BaseURL: s.BaseURL(), Authed: true, Username: username},
+		Base:    s.baseView(r, "Search"),
 		Query:   q,
 		Page:    page,
 		Per:     per,
@@ -315,7 +313,6 @@ func (s *Server) searchHref(q SearchQuery, page, per int) string {
 }
 
 func (s *Server) handleProfileGet(w http.ResponseWriter, r *http.Request) {
-	username, _ := s.sessionUsername(r)
 	id := r.PathValue("id")
 	p, ok := s.state.GetProfile(id)
 	if !ok {
@@ -331,7 +328,7 @@ func (s *Server) handleProfileGet(w http.ResponseWriter, r *http.Request) {
 		NoteLimit  int
 		PostAction string
 	}{
-		Base:       baseView{Title: "Profile", BaseURL: s.BaseURL(), Authed: true, Username: username},
+		Base:       s.baseView(r, "Profile"),
 		Profile:    p,
 		Conn:       c,
 		NoteLimit:  200,
@@ -374,7 +371,6 @@ func (s *Server) handleConnectPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleConnectionsGet(w http.ResponseWriter, r *http.Request) {
-	username, _ := s.sessionUsername(r)
 	pending, accepted := s.state.ListConnections()
 
 	data := struct {
@@ -382,17 +378,20 @@ func (s *Server) handleConnectionsGet(w http.ResponseWriter, r *http.Request) {
 		Pending  []Connection
 		Accepted []Connection
 		Profiles map[string]Profile
+		PendingCount  int
+		AcceptedCount int
 	}{
-		Base:     baseView{Title: "Connections", BaseURL: s.BaseURL(), Authed: true, Username: username},
+		Base:     s.baseView(r, "Connections"),
 		Pending:  pending,
 		Accepted: accepted,
 		Profiles: s.state.profilesByID, // safe read: map is immutable after init
+		PendingCount:  len(pending),
+		AcceptedCount: len(accepted),
 	}
 	s.render(w, "connections.html", data)
 }
 
 func (s *Server) handleMessagesGet(w http.ResponseWriter, r *http.Request) {
-	username, _ := s.sessionUsername(r)
 	threadID := strings.TrimSpace(r.URL.Query().Get("thread"))
 
 	type ThreadView struct {
@@ -427,13 +426,15 @@ func (s *Server) handleMessagesGet(w http.ResponseWriter, r *http.Request) {
 		SelectedProfileID string
 		Messages          []Message
 		Profiles          map[string]Profile
+		ThreadCount       int
 	}{
-		Base:              baseView{Title: "Messages", BaseURL: s.BaseURL(), Authed: true, Username: username},
+		Base:              s.baseView(r, "Messages"),
 		Threads:           threads,
 		SelectedThreadID:  threadID,
 		SelectedProfileID: selectedProfileID,
 		Messages:          msgs,
 		Profiles:          s.state.profilesByID,
+		ThreadCount:       len(threads),
 	}
 	s.render(w, "messages.html", data)
 }

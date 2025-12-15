@@ -1,10 +1,29 @@
 {{define "content"}}
 <section class="card" data-testid="messages-card">
-  <h1 data-testid="messages-title">Messages</h1>
+  <div class="row between">
+    <h1 data-testid="messages-title">Messaging</h1>
+    <span class="badge" data-testid="messages-thread-count">{{.ThreadCount}} conversations</span>
+  </div>
+
+  <div class="row" data-testid="messages-toolbar">
+    <input class="grow" placeholder="Search messages" aria-label="Search messages" data-testid="messages-search" />
+    <span class="badge" data-testid="messages-filter">Inbox</span>
+    <a class="btn secondary" href="/search" data-testid="messages-new">New message</a>
+  </div>
 
   <div class="messages" data-testid="messages-layout">
     <aside class="threads" data-testid="threads">
-      <h2 data-testid="threads-title">Threads</h2>
+      <div class="row between">
+        <h2 data-testid="threads-title">Inbox</h2>
+        <span class="badge" data-testid="threads-count">{{.ThreadCount}}</span>
+      </div>
+
+      <nav class="menu compact" data-testid="messages-menu">
+        <a class="menu-item active" href="/messages" data-testid="messages-menu-inbox">Inbox</a>
+        <a class="menu-item" href="/messages" data-testid="messages-menu-archived">Archived</a>
+        <a class="menu-item" href="/messages" data-testid="messages-menu-spam">Spam</a>
+      </nav>
+
       {{range .Threads}}
         <a class="thread {{if eq $.SelectedThreadID .ThreadID}}active{{end}}" href="/messages?thread={{.ThreadID}}" data-testid="thread-link" data-thread-id="{{.ThreadID}}" data-profile-id="{{.ProfileID}}">
           <div class="name">{{.Name}}</div>
