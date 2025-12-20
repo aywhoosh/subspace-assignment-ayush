@@ -42,14 +42,14 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to create browser: %w", err)
 	}
-	defer cleanup()
+	defer func() { _ = cleanup() }()
 
 	// Create one persistent page that stays open
 	page, err := br.NewPage("about:blank")
 	if err != nil {
 		return fmt.Errorf("failed to create page: %w", err)
 	}
-	defer page.Close()
+	defer func() { _ = page.Close() }()
 
 	fmt.Println("✓ Browser launched successfully")
 	fmt.Println("✓ Database connected")
