@@ -8,6 +8,8 @@ Start-Sleep 2
 
 # Server runs at: http://localhost:8080
 
+Preview website at http://localhost:8080/login
+
 
 ## 2. Run Interactive Mode (Recommended)
 
