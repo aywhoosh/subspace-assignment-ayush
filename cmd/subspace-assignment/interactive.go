@@ -19,7 +19,8 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 	fmt.Println("\n╔════════════════════════════════════════════════════════════════╗")
 	fmt.Println("║            SUBSPACE AUTOMATION CONTROL PANEL                   ║")
 	fmt.Println("║              Browser will stay open between runs               ║")
-	fmt.Println("╚════════════════════════════════════════════════════════════════╝\n")
+	fmt.Println("╚════════════════════════════════════════════════════════════════╝")
+	fmt.Println()
 
 	// Open database once
 	db, repos, err := openRepos(ctx, cfg)
@@ -73,12 +74,14 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 				fmt.Printf("❌ Login failed: %v\n\n", err)
 			} else {
 				authenticated = true
-				fmt.Println("✓ Login successful\n")
+				fmt.Println("✓ Login successful")
+				fmt.Println()
 			}
 
 		case "2":
 			if !authenticated {
-				fmt.Println("⚠️  Please login first (option 1)\n")
+				fmt.Println("⚠️  Please login first (option 1)")
+				fmt.Println()
 				continue
 			}
 			if err := runSearch(ctx, cfg, br, repos, page); err != nil {
@@ -87,7 +90,8 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 
 		case "3":
 			if !authenticated {
-				fmt.Println("⚠️  Please login first (option 1)\n")
+				fmt.Println("⚠️  Please login first (option 1)")
+				fmt.Println()
 				continue
 			}
 			if err := runConnect(ctx, cfg, br, repos, page, scanner); err != nil {
@@ -96,7 +100,8 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 
 		case "4":
 			if !authenticated {
-				fmt.Println("⚠️  Please login first (option 1)\n")
+				fmt.Println("⚠️  Please login first (option 1)")
+				fmt.Println()
 				continue
 			}
 			if err := runMessage(ctx, cfg, br, repos, page, scanner); err != nil {
@@ -113,7 +118,8 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 
 		case "6":
 			if !authenticated {
-				fmt.Println("⚠️  Please login first (option 1)\n")
+				fmt.Println("⚠️  Please login first (option 1)")
+				fmt.Println()
 				continue
 			}
 			if err := runViewInbox(ctx, cfg, br, repos, page); err != nil {
@@ -125,7 +131,8 @@ func runInteractiveMode(ctx context.Context, cfg config.Config) error {
 			return nil
 
 		default:
-			fmt.Println("❌ Invalid choice. Please try again.\n")
+			fmt.Println("❌ Invalid choice. Please try again.")
+			fmt.Println()
 		}
 	}
 
@@ -404,13 +411,15 @@ func runViewInbox(ctx context.Context, cfg config.Config, br *browser.Client, re
 	// Find conversations list
 	container, err := page.Timeout(5 * time.Second).Element("[data-testid='conversations-list']")
 	if err != nil {
-		fmt.Println("  No conversations found\n")
+		fmt.Println("  No conversations found")
+		fmt.Println()
 		return nil
 	}
 
 	items, err := container.Elements("[data-testid='conversation-item']")
 	if err != nil {
-		fmt.Println("  No conversations found\n")
+		fmt.Println("  No conversations found")
+		fmt.Println()
 		return nil
 	}
 
@@ -431,7 +440,8 @@ func runViewInbox(ctx context.Context, cfg config.Config, br *browser.Client, re
 	}
 
 	if len(conversations) == 0 {
-		fmt.Println("  No conversations found\n")
+		fmt.Println("  No conversations found")
+		fmt.Println()
 		return nil
 	}
 
