@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -36,9 +35,4 @@ func mustNonEmpty(field, value string) error {
 		return fmt.Errorf("storage: %s is required", field)
 	}
 	return nil
-}
-
-func execOne(ctx context.Context, db *sql.DB, q string, args ...any) error {
-	_, err := db.ExecContext(ctx, q, args...)
-	return err
 }

@@ -299,7 +299,7 @@ func runMessage(ctx context.Context, cfg config.Config, br *browser.Client, repo
 	// First, ensure connection is accepted (navigate to connections and accept)
 	fmt.Println("  Checking connection status...")
 	if err := page.Navigate(cfg.Mocknet.BaseURL + "/connections"); err == nil {
-		page.Timeout(5 * time.Second).WaitLoad()
+		_ = page.Timeout(5 * time.Second).WaitLoad()
 		time.Sleep(500 * time.Millisecond)
 		
 		// Try to find and accept pending connection for this user
@@ -313,12 +313,12 @@ func runMessage(ctx context.Context, cfg config.Config, br *browser.Client, repo
 				wait := page.MustWaitNavigation()
 				acceptBtn.MustClick()
 				wait()
-				page.Timeout(10 * time.Second).WaitLoad()
+				_ = page.Timeout(10 * time.Second).WaitLoad()
 				time.Sleep(4 * time.Second) // Wait longer for connection to be fully processed in backend
 				
 				// Navigate back to connections to verify
-				page.Navigate(cfg.Mocknet.BaseURL + "/connections")
-				page.Timeout(5 * time.Second).WaitLoad()
+				_ = page.Navigate(cfg.Mocknet.BaseURL + "/connections")
+				_ = page.Timeout(5 * time.Second).WaitLoad()
 				time.Sleep(500 * time.Millisecond)
 				
 				// Verify connection was accepted by checking for accepted connection
@@ -390,8 +390,8 @@ func runMessage(ctx context.Context, cfg config.Config, br *browser.Client, repo
 	time.Sleep(1 * time.Second)
 	
 	// Reload page to show the message
-	page.Reload()
-	page.Timeout(5 * time.Second).WaitLoad()
+	_ = page.Reload()
+	_ = page.Timeout(5 * time.Second).WaitLoad()
 
 	fmt.Printf("✓ Message sent to user %s\n\n", userID)
 	return nil

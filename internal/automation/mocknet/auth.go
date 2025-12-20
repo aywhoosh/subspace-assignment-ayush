@@ -239,11 +239,6 @@ func ensureLocalBaseURL(raw string) error {
 	return nil
 }
 
-func isCheckpoint(page *rod.Page) bool {
-	_, err := page.Element("[data-testid='checkpoint-card']")
-	return err == nil
-}
-
 func click(page *rod.Page, selector string) error {
 	el, err := page.Element(selector)
 	if err != nil {
@@ -266,14 +261,4 @@ func typeInto(page *rod.Page, selector, value string) error {
 	return nil
 }
 
-func readText(page *rod.Page, selector string) (string, bool) {
-	el, err := page.Element(selector)
-	if err != nil {
-		return "", false
-	}
-	t, err := el.Text()
-	if err != nil {
-		return "", false
-	}
-	return t, true
-}
+
