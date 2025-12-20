@@ -16,10 +16,10 @@ Educational proof-of-concept demonstrating **robust browser automation** and **c
 
 Add images into a `./screenshots/` folder and update the links below.
 
-- MockNet login: `screenshots/mocknet-login.png`
-- Interactive CLI menu: `screenshots/interactive-menu.png`
-- Search results: `screenshots/search-results.png`
-- Messaging workflow: `screenshots/send-message.png`
+- MockNet login: `./screenshots/mocknet-login.png`
+- Interactive CLI menu: `./screenshots/interactive-menu.png`
+- Search results: `./screenshots/search-results.png`
+- Messaging workflow: `./screenshots/send-message.png`
 
 Example:
 
