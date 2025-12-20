@@ -12,20 +12,19 @@ Educational proof-of-concept demonstrating **robust browser automation** and **c
 - ❌ Not for automating real third‑party websites/services
 - ❌ Not a bot‑evasion project (no fingerprint masking, webdriver flag tampering, CAPTCHA/2FA bypass)
 
-## Screenshots (placeholders)
+## Screenshots
 
-Add images into a `./screenshots/` folder and update the links below.
+### MockNet Login
+![MockNet Login](screenshots/mocknet-login.png)
 
-- MockNet login: `./screenshots/mocknet-login.png`
-- Interactive CLI menu: `./screenshots/interactive-menu.png`
-- Search results: `./screenshots/search-results.png`
-- Messaging workflow: `./screenshots/send-message.png`
-
-Example:
-
-```markdown
+### Interactive CLI Menu
 ![Interactive CLI](screenshots/interactive-menu.png)
-```
+
+### Search Results
+![Search Results](screenshots/search-results.png)
+
+### Send Message
+![Send Message](screenshots/send-message.png)
 
 ## Quick start (Windows)
 
@@ -109,22 +108,24 @@ If your machine blocks Rod’s helper, keep `SUBSPACE_BROWSER__LEAKLESS=false` (
 ## Architecture
 
 ```mermaid
-graph TD
-    CLI[cmd/subspace-assignment] --> APP[internal/app]
-    APP --> AUTO[internal/automation]
-    AUTO --> BROWSER[internal/browser (Rod)]
-    AUTO --> STORE[internal/storage (SQLite)]
-    APP --> MOCK[mocknet]
-    STORE --> DB[(SQLite DB)]
+graph LR
+    CLI[CLI Commands] --> App[App Layer]
+    App --> Automation[Automation Layer]
+    App --> MockNet[MockNet Server]
+    Automation --> Browser[Browser<br/>Rod]
+    Automation --> Storage[Storage<br/>SQLite]
+    Browser -.interacts with.-> MockNet
+    Storage --> DB[(Database)]
 ```
 
-Key directories:
+**Key components:**
 
-- `cmd/` — CLI entrypoints (interactive + automation commands)
-- `internal/automation/` — workflows (auth/search/connect/message/human)
-- `internal/browser/` — Rod wrapper + cookie utilities
-- `internal/storage/` — repositories + migrations
-- `mocknet/` — local web app (templates + handlers)
+- **CLI** — Interactive mode & automation commands
+- **App** — Orchestrates workflows
+- **Automation** — Auth, search, connect, message workflows
+- **Browser** — Rod wrapper with cookie persistence
+- **Storage** — SQLite repositories & migrations
+- **MockNet** — Local social network server
 
 ## API surface (developer reference)
 
@@ -195,3 +196,43 @@ Remove-Item -Path .\data\subspace.db -Force -ErrorAction SilentlyContinue
 
 - Quick command reference: `commands.txt`
 - Rod docs: https://go-rod.github.io/
+
+---
+
+## Automation Workflow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Browser
+    participant MockNet
+    participant Storage
+
+    User->>CLI: Start interactive mode
+    CLI->>Browser: Initialize Rod browser
+    CLI->>MockNet: Check server status
+    
+    User->>CLI: Select "Login"
+    CLI->>Browser: Navigate to /login
+    Browser->>MockNet: GET /login
+    MockNet-->>Browser: Login form
+    Browser->>MockNet: POST credentials
+    MockNet-->>Browser: Set session cookie
+    Browser->>Storage: Save cookies
+    
+    User->>CLI: Select "Search"
+    CLI->>Browser: Navigate to /search
+    Browser->>MockNet: GET /search
+    MockNet-->>Browser: Search results
+    CLI-->>User: Display profile IDs
+    
+    User->>CLI: Select "Send Message"
+    CLI->>Browser: Navigate to /messages
+    Browser->>MockNet: POST message
+    MockNet-->>Browser: Message sent
+    Browser->>Storage: Log message
+    CLI-->>User: Success confirmation
+```
+
+This diagram shows the typical flow when using the interactive mode to login, search for profiles, and send messages through the automated browser.
