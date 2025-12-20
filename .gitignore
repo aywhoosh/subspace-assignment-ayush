@@ -6,21 +6,36 @@
 # Artifacts (will be used later)
 /artifacts/
 
-# Local runtime data
-/data/
+# Local runtime data (SQLite, etc.)
+/data/*.db
+/data/*.sqlite
+/data/*.sqlite3
+/data/*.db-shm
+/data/*.db-wal
+/data/*.sqlite-shm
+/data/*.sqlite-wal
 
 # Local branding assets (optional runtime-only)
 /logos/
 
 # Local config / env
 .env
+config.yaml
 *.local.yaml
 *.local.yml
 *.local.json
 
+# Logs
+*.log
+
 # Editor
 .vscode/
 .idea/
+
+# Go tooling
+*.test
+*.prof
+coverage.out
 
 # OS
 .DS_Store

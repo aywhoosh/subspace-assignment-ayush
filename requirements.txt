@@ -1,0 +1,10 @@
+# This repository is a Go project.
+#
+# There are no Python/pip dependencies to install.
+# Go module dependencies are defined in `go.mod`/`go.sum`.
+#
+# Tooling prerequisites (recommended for development / CI parity):
+# - Go: 1.22+
+# - golangci-lint: v1.61.0 (pinned in .github/workflows/ci.yml)
+# - A system browser for Rod: Google Chrome or Microsoft Edge
+# - PowerShell (Windows): for the job-based MockNet startup commands in commands.txt
