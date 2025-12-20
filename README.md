@@ -1,113 +1,162 @@
-# Subspace Assignment (Educational Browser Automation PoC)
+# Subspace Assignment — Browser Automation (MockNet)
 
-This repository will become an educational proof-of-concept for **browser automation realism** and **clean architecture** using:
-- Go
-- Rod (browser automation)
-- A locally hosted **Mock Social Network** web app included in this repo
-- SQLite persistence
+[![CI](https://github.com/aywhoosh/subspace-assignment-ayush/actions/workflows/ci.yml/badge.svg)](https://github.com/aywhoosh/subspace-assignment-ayush/actions/workflows/ci.yml)
+[![Go](https://img.shields.io/badge/Go-1.22%2B-00ADD8?logo=go&logoColor=white)](go.mod)
 
-## What this is
-- A learning-oriented automation project showing robust patterns (timeouts, retries, state persistence, logging)
-- A local-only demo that automates a mock site you control
+Educational proof-of-concept demonstrating **robust browser automation** and **clean architecture** in Go using **Rod**, against a **local mock social network** shipped with this repository.
 
-## What this is NOT
-- Not a tool for automating real third-party websites/services
-- Not a bot-evasion project: **no fingerprint masking, no webdriver-flag tampering, no captcha/2FA bypass**
+## What this is / isn’t
 
-## Safety / Ethical use
-This project will **only** run against the included local mock app on `http://localhost:<port>`.
-Any mock “checkpoint” pages (captcha/2FA) will be handled by **detection + safe pause for manual intervention**.
+- ✅ A local-only automation demo with resilient patterns (timeouts, state persistence, logging)
+- ✅ A safe, controlled environment: `mocknet` runs at `http://localhost:8080`
+- ❌ Not for automating real third‑party websites/services
+- ❌ Not a bot‑evasion project (no fingerprint masking, webdriver flag tampering, CAPTCHA/2FA bypass)
 
-## Quickstart (scaffold)
-Prereqs:
-- Go (from `go.mod`)
-- `golangci-lint` (for `make lint`)
+## Screenshots (placeholders)
 
-Config inputs (added in commit 2):
-- YAML: `config.example.yaml` (copy to `config.yaml` later)
-- Env overrides: see `.env.example` (not committed as `.env`)
+Add images into a `./screenshots/` folder and update the links below.
 
-Storage (added in commit 4):
-- SQLite database path is configured via `storage.sqlite_path` or `SUBSPACE_STORAGE_SQLITE_PATH`
+- MockNet login: `screenshots/mocknet-login.png`
+- Interactive CLI menu: `screenshots/interactive-menu.png`
+- Search results: `screenshots/search-results.png`
+- Messaging workflow: `screenshots/send-message.png`
 
-Commands:
-- `make test`
-- `make lint`
-- `make run`
+Example:
 
-Run the local mock app:
-- `go run ./cmd/subspace-assignment mocknet up`
+```markdown
+![Interactive CLI](screenshots/interactive-menu.png)
+```
+
+## Quick start (Windows)
+
+### 1) Start MockNet (required)
+
+PowerShell:
+
+```powershell
+Start-Job -ScriptBlock { go run ./cmd/subspace-assignment mocknet up }
+Start-Sleep 2
+```
 
 Open:
+
 - `http://localhost:8080/login`
 
-Run Rod automation against the local mock app (persists cookies to SQLite):
-- `go run ./cmd/subspace-assignment automate login`
-- `go run ./cmd/subspace-assignment automate check`
+### 2) Run the interactive demo (recommended)
 
-Notes:
-- Stop the mock server with `Ctrl+C`.
-- The optional logo is served from your local `./logos` folder at `/brand/logo.png` (assets are intentionally ignored by git).
+```powershell
+go run ./cmd/subspace-assignment interactive
+```
 
-Windows note:
-- If you don’t have `make`, run the equivalent commands directly:
-  - `go test ./...`
-  - `golangci-lint run`
-  - `go run ./cmd/subspace-assignment --help`
+The menu supports:
 
-Rod on Windows note (Defender / AV):
-- This project prefers using a system-installed browser (Edge/Chrome) instead of downloading a bundled Chromium.
-- If automation fails to launch a browser, set `SUBSPACE_BROWSER__BIN_PATH` to your browser executable.
-- If your machine blocks Rod’s leakless helper, keep `SUBSPACE_BROWSER__LEAKLESS=false` (default).
-- If you explicitly want Rod to download Chromium, set `SUBSPACE_BROWSER__ALLOW_DOWNLOAD=true`.
+- Login
+- Search (shows profile IDs)
+- Send connection request
+- Send message
+- Check session status
+- View inbox
 
-## Implemented Features
+### 3) Run individual automations
 
-✅ Configuration system (YAML + env vars)
-✅ Structured logging with slog
-✅ SQLite storage with migrations
-✅ Mock server with stable test selectors
-✅ Rod browser automation client
-✅ Cookie-based session persistence
-✅ Authentication workflows (login, session check)
-✅ Search & profile viewing workflows
-✅ Connection request workflows
-✅ Messaging workflows
-✅ Human-like behavior patterns (delays, typing speed)
-✅ Unit test coverage
-✅ Comprehensive documentation
+```powershell
+go run ./cmd/subspace-assignment automate doctor
+go run ./cmd/subspace-assignment automate login
+go run ./cmd/subspace-assignment automate check
+```
 
-## API Reference
+### 4) Stop server and clean up
 
-### Search Workflows
+```powershell
+Get-Job | Stop-Job
+Get-Job | Remove-Job
+
+# If a browser was left open:
+Stop-Process -Name msedge -Force -ErrorAction SilentlyContinue
+Stop-Process -Name chrome -Force -ErrorAction SilentlyContinue
+```
+
+More command snippets: see `commands.txt`.
+
+## Configuration
+
+- Copy `config.example.yaml` → `config.yaml`
+- Storage:
+    - YAML: `storage.sqlite_path`
+    - Env: `SUBSPACE_STORAGE_SQLITE_PATH`
+
+### Browser selection (Windows)
+
+This project prefers a system-installed browser (Edge/Chrome). If auto-detection fails:
+
+```powershell
+$env:SUBSPACE_BROWSER__BIN_PATH="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+```
+
+If your machine blocks Rod’s helper, keep `SUBSPACE_BROWSER__LEAKLESS=false` (default).
+
+## Features implemented
+
+- Configuration (YAML + env overrides)
+- Structured logging (`slog`)
+- SQLite storage + migrations
+- MockNet server with stable selectors
+- Rod browser client + cookie persistence
+- Workflows: auth, session check, search/profile view, connect, messaging
+- Human-like behavior: delays + typing speed
+- Unit tests (`go test ./...`)
+
+## Architecture
+
+```mermaid
+graph TD
+    CLI[cmd/subspace-assignment] --> APP[internal/app]
+    APP --> AUTO[internal/automation]
+    AUTO --> BROWSER[internal/browser (Rod)]
+    AUTO --> STORE[internal/storage (SQLite)]
+    APP --> MOCK[mocknet]
+    STORE --> DB[(SQLite DB)]
+```
+
+Key directories:
+
+- `cmd/` — CLI entrypoints (interactive + automation commands)
+- `internal/automation/` — workflows (auth/search/connect/message/human)
+- `internal/browser/` — Rod wrapper + cookie utilities
+- `internal/storage/` — repositories + migrations
+- `mocknet/` — local web app (templates + handlers)
+
+## API surface (developer reference)
+
+### Search
 
 ```go
 type SearchOptions struct {
-    Title    string
-    Company  string
-    Location string
-    Keywords string
-    PerPage  int
+	Title    string
+	Company  string
+	Location string
+	Keywords string
+	PerPage  int
 }
 
 func Search(ctx, br, baseURL, opts) ([]SearchResult, error)
 func ViewProfile(ctx, br, baseURL, profileID) (string, error)
 ```
 
-### Connection Workflows
+### Connections
 
 ```go
 func SendConnectionRequest(ctx, br, baseURL, profileID, note) error
 func GetPendingRequests(ctx, br, baseURL) ([]string, error)
 ```
 
-### Messaging Workflows
+### Messaging
 
 ```go
 type Message struct {
-    From      string
-    Content   string
-    Timestamp string
+	From      string
+	Content   string
+	Timestamp string
 }
 
 func SendMessage(ctx, br, baseURL, recipientID, messageText) error
@@ -115,111 +164,34 @@ func GetConversation(ctx, br, baseURL, recipientID) ([]Message, error)
 func GetInbox(ctx, br, baseURL) ([]string, error)
 ```
 
-### Human-like Behaviors
-
-```go
-type HumanBehavior struct {
-    RandomDelayMin     time.Duration
-    RandomDelayMax     time.Duration
-    TypingSpeedMin     time.Duration
-    TypingSpeedMax     time.Duration
-}
-
-func DefaultHumanBehavior() HumanBehavior  // Realistic delays (500-2000ms)
-func FastHumanBehavior() HumanBehavior      // Faster but realistic (200-800ms)
-func (h HumanBehavior) RandomDelay(ctx)
-func (h HumanBehavior) HumanType(ctx, el, text) error
-func (h HumanBehavior) HumanClick(ctx, page, el) error
-func (h HumanBehavior) ScrollRandom(ctx, page) error
-```
-
 ## Testing
 
-```bash
-# Run all tests
+```powershell
 go test ./...
-
-# Run with verbose output
-go test ./... -v
-
-# Test specific package
-go test ./internal/automation/mocknet -v
 ```
-
-Test coverage includes:
-- ✅ Automation workflows (search, connect, message)
-- ✅ Human-like behavior patterns
-- ✅ Browser cookie handling
-- ✅ Configuration loading
-- ✅ Database migrations
 
 ## Troubleshooting
 
-### Browser Detection Issues
+### Browser setup
 
-```bash
-# Validate browser setup
+```powershell
 go run ./cmd/subspace-assignment automate doctor
-
-# Set explicit browser path
-export SUBSPACE_BROWSER__BIN_PATH="/path/to/browser"
 ```
 
-### Timeout Errors
+### Clear local state (fresh run)
 
-All element lookups have 5-10 second timeouts. If operations fail:
-- Verify mock server is running: `http://localhost:8080`
-- Check network connectivity
-- Increase timeout in code if needed
+PowerShell:
 
-### Session Issues
-
-```bash
-# Clear saved sessions
-rm data/subspace.db
-
-# Login fresh
-go run ./cmd/subspace-assignment automate login
+```powershell
+Remove-Item -Path .\data\subspace.db -Force -ErrorAction SilentlyContinue
 ```
 
-## Performance
+## Safety / ethics
 
-- **Login**: ~2-3 seconds (with navigation waits)
-- **Search**: ~1-2 seconds (depends on results)
-- **Session Check**: ~1 second (cookie reuse)
-- **Message Send**: ~1 second
+- Automation targets **only** the included local MockNet app.
+- Checkpoint pages are handled via **detection + safe pause** (no bypass logic).
 
-With `FastHumanBehavior()`:
-- Delays: 200-800ms (vs 500-2000ms default)
-- Typing: 20-80ms/char (vs 50-150ms default)
+## Links
 
-## Database Schema
-
-### Sessions Table
-```sql
-CREATE TABLE sessions (
-    key      TEXT PRIMARY KEY,  -- Format: "mocknet|baseURL|username"
-    cookies  TEXT NOT NULL,     -- JSON array of cookies
-    created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## Security Notes
-
-- ⚠️ Browser runs in **non-leakless mode** for development
-- 🔒 Cookies stored in local SQLite (plaintext)
-- 🚫 No cloud sync or external transmissions
-- ⚠️ Mock server has no authentication (localhost only)
-
-**Production Considerations:**
-- Enable leakless mode for cleanup
-- Encrypt cookie storage
-- Use secure credential management
-- Implement rate limiting
-
-## Support
-
-- Check [commands.txt](./commands.txt) for quick reference
-- Review test files for usage examples
-- Rod documentation: https://go-rod.github.io/
+- Quick command reference: `commands.txt`
+- Rod docs: https://go-rod.github.io/
